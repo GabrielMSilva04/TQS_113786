@@ -1,0 +1,84 @@
+package deti.tqs;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+import java.util.NoSuchElementException;
+
+public class TqsStackTest {
+    TqsStack<Integer> stack;
+
+    @BeforeEach
+    public void setup() {
+        stack = new TqsStack<>(3);
+    }
+
+    @Test
+    public void testIsEmpty() {
+        Assertions.assertTrue(stack.isEmpty());
+
+        stack.push(1);
+        Assertions.assertFalse(stack.isEmpty());
+    }
+
+    @Test
+    public void testSize() {
+        Assertions.assertEquals(0, stack.size());
+
+        stack.push(1);
+        Assertions.assertEquals(1, stack.size());
+    }
+
+    @Test
+    public void testPop() {
+        Assertions.assertThrows(NoSuchElementException.class, () -> stack.pop());
+
+        stack.push(1);
+        stack.push(2);
+        stack.push(3);
+
+        Assertions.assertEquals(3, stack.pop());
+        Assertions.assertEquals(2, stack.pop());
+        Assertions.assertEquals(1, stack.pop());
+        Assertions.assertThrows(NoSuchElementException.class, () -> stack.pop());
+    }
+
+    @Test
+    public void testPeek() {
+        Assertions.assertThrows(NoSuchElementException.class, () -> stack.peek());
+
+        stack.push(1);
+        stack.push(2);
+        stack.push(3);
+
+        Assertions.assertEquals(3, stack.peek());
+        Assertions.assertEquals(3, stack.peek());
+    }
+
+    @Test
+    public void testPush() {
+        stack.push(1);
+        stack.push(2);
+        stack.push(3);
+        Assertions.assertThrows(IllegalStateException.class, () -> stack.push(4));
+
+        Assertions.assertEquals(3, stack.pop());
+        Assertions.assertEquals(2, stack.pop());
+        Assertions.assertEquals(1, stack.pop());
+    }
+
+    @Test
+    void testPopTopN() {
+        stack.push(1);
+        stack.push(2);
+        stack.push(3);
+        stack.push(4);
+        assertEquals(3, stack.popTopN(3));
+    }
+
+    @AfterEach
+    public void teardown() {
+        stack = null;
+    }
+}
