@@ -21,8 +21,8 @@ public class ProductFinderService {
             jsonObject.get("id").getAsInt(),
             jsonObject.get("title").getAsString(),
             jsonObject.get("price").getAsDouble(),
-            jsonObject.get("category").getAsString(),
             jsonObject.get("description").getAsString(),
+            jsonObject.get("category").getAsString(),
             jsonObject.get("image").getAsString()
         );
     }

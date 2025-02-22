@@ -11,13 +11,13 @@ public class Product {
     public Product() {
     }
 
-    public Product(Integer id, String image, Double price, String title, String category, String description) {
+    public Product(Integer id, String title, Double price, String description, String category, String image) {
         this.id = id;
-        this.image = image;
-        this.price = price;
         this.title = title;
-        this.category = category;
+        this.price = price;
         this.description = description;
+        this.category = category;
+        this.image = image;
     }
 
     // Getters and setters
