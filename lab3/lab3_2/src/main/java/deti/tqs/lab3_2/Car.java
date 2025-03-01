@@ -12,15 +12,18 @@ public class Car {
     private Long carId;
     private String maker;
     private String model;
+    private String category;  // e.g., "LUXURY", "COMPACT", "SUV"
+    private boolean available = true;
 
     // Default constructor
     public Car() {
     }
 
-    // Constructor with maker and model
-    public Car(String maker, String model) {
+    // Constructor with maker, model, and category
+    public Car(String maker, String model, String category) {
         this.maker = maker;
         this.model = model;
+        this.category = category;
     }
 
     // Getters and Setters
@@ -48,6 +51,22 @@ public class Car {
         this.model = model;
     }
 
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public boolean isAvailable() {
+        return available;
+    }
+
+    public void setAvailable(boolean available) {
+        this.available = available;
+    }
+
     // Object methods overrides
     @Override
     public boolean equals(Object obj) {
@@ -68,6 +87,8 @@ public class Car {
                 "carId=" + carId +
                 ", maker='" + maker + '\'' +
                 ", model='" + model + '\'' +
+                ", category='" + category + '\'' +
+                ", available=" + available +
                 '}';
     }
 }

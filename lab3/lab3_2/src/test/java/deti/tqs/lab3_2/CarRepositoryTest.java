@@ -20,7 +20,7 @@ class CarRepositoryTest {
 
     @Test
     void whenFindCarById_thenReturnCar() {
-        Car car = new Car("Tesla", "Model X");
+        Car car = new Car("Tesla", "Model X", "LUXURY");
         entityManager.persistAndFlush(car);
 
         Car found = carRepository.findByCarId(car.getCarId());
@@ -37,9 +37,9 @@ class CarRepositoryTest {
 
     @Test
     void givenSetOfCars_whenFindAll_thenReturnAllCars() {
-        Car tesla = new Car("Tesla", "Model X");
-        Car toyota = new Car("Toyota", "Prius");
-        Car honda = new Car("Honda", "Civic");
+        Car tesla = new Car("Tesla", "Model X", "LUXURY");
+        Car toyota = new Car("Toyota", "Prius", "COMPACT");
+        Car honda = new Car("Honda", "Civic", "COMPACT");
 
         entityManager.persist(tesla);
         entityManager.persist(toyota);
@@ -52,5 +52,30 @@ class CarRepositoryTest {
             .hasSize(3)
             .extracting(Car::getMaker)
             .containsExactlyInAnyOrder(tesla.getMaker(), toyota.getMaker(), honda.getMaker());
+    }
+
+    @Test
+    void whenFindReplacement_thenReturnMatchingCar() {
+        Car originalCar = new Car("Tesla", "Model 3", "LUXURY");
+        Car replacementCar = new Car("BMW", "7 Series", "LUXURY");
+        replacementCar.setAvailable(true);
+        Car unavailableCar = new Car("Mercedes", "S Class", "LUXURY");
+        unavailableCar.setAvailable(false);
+
+        entityManager.persist(originalCar);
+        entityManager.persist(replacementCar);
+        entityManager.persist(unavailableCar);
+        entityManager.flush();
+
+        List<Car> replacements = carRepository.findByCategoryAndAvailableAndCarIdNot(
+            "LUXURY", 
+            true, 
+            originalCar.getCarId()
+        );
+
+        assertThat(replacements)
+            .hasSize(1)
+            .extracting(Car::getMaker)
+            .containsOnly("BMW");
     }
 }

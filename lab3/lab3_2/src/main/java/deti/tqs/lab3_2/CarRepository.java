@@ -9,4 +9,5 @@ import java.util.List;
 public interface CarRepository extends JpaRepository<Car, Long> {
     Car findByCarId(Long carId);
     List<Car> findAll();
+    List<Car> findByCategoryAndAvailableAndCarIdNot(String category, boolean available, Long carId);
 }

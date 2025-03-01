@@ -30,7 +30,7 @@ public class CarControllerTest {
 
     @BeforeEach
     public void setUp() {
-        car = new Car("Tesla", "Model X");
+        car = new Car("Tesla", "Model X", "LUXURY");
         car.setCarId(1L);
     }
 
@@ -51,7 +51,7 @@ public class CarControllerTest {
 
     @Test
     void givenManyCars_whenGetCars_thenReturnJsonArray() throws Exception {
-        Car car2 = new Car("Prius", "Toyota");
+        Car car2 = new Car("Toyota", "Prius", "COMPACT");
         car2.setCarId(2L);
 
         when(service.getAllCars()).thenReturn(Arrays.asList(car, car2));
@@ -61,7 +61,7 @@ public class CarControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[0].maker", is("Tesla")))
-                .andExpect(jsonPath("$[1].maker", is("Prius")));
+                .andExpect(jsonPath("$[1].maker", is("Toyota")));
 
         verify(service, times(1)).getAllCars();
     }

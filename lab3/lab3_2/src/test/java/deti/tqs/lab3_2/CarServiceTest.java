@@ -27,7 +27,7 @@ class CarServiceTest {
 
     @BeforeEach
     void setUp() {
-        car = new Car("Tesla", "Model X");
+        car = new Car("Tesla", "Model X", "LUXURY");
         car.setCarId(1L);
     }
 
@@ -44,7 +44,7 @@ class CarServiceTest {
 
     @Test
     void whenGetAllCars_thenReturnAllCars() {
-        Car car2 = new Car("Toyota", "Prius");
+        Car car2 = new Car("Toyota", "Prius", "COMPACT");
         car2.setCarId(2L);
         List<Car> allCars = Arrays.asList(car, car2);
 
@@ -75,5 +75,43 @@ class CarServiceTest {
 
         assertThat(found).isEmpty();
         verify(carRepository).findByCarId(99L);
+    }
+
+    @Test
+    void whenFindReplacement_thenReturnSuitableCar() {
+        // Original car
+        Car originalCar = new Car("Tesla", "Model 3", "LUXURY");
+        originalCar.setCarId(1L);
+
+        // Potential replacement
+        Car replacementCar = new Car("BMW", "7 Series", "LUXURY");
+        replacementCar.setCarId(2L);
+        replacementCar.setAvailable(true);
+
+        when(carRepository.findByCarId(1L)).thenReturn(originalCar);
+        when(carRepository.findByCategoryAndAvailableAndCarIdNot("LUXURY", true, 1L))
+            .thenReturn(Arrays.asList(replacementCar));
+
+        Optional<Car> replacement = carService.findReplacement(1L);
+
+        assertThat(replacement).isPresent();
+        assertThat(replacement.get().getCategory()).isEqualTo(originalCar.getCategory());
+        assertThat(replacement.get().isAvailable()).isTrue();
+        verify(carRepository).findByCarId(1L);
+        verify(carRepository).findByCategoryAndAvailableAndCarIdNot("LUXURY", true, 1L);
+    }
+
+    @Test
+    void whenNoReplacementAvailable_thenReturnEmpty() {
+        Car originalCar = new Car("Tesla", "Model 3", "LUXURY");
+        originalCar.setCarId(1L);
+
+        when(carRepository.findByCarId(1L)).thenReturn(originalCar);
+        when(carRepository.findByCategoryAndAvailableAndCarIdNot("LUXURY", true, 1L))
+            .thenReturn(Arrays.asList());
+
+        Optional<Car> replacement = carService.findReplacement(1L);
+
+        assertThat(replacement).isEmpty();
     }
 }

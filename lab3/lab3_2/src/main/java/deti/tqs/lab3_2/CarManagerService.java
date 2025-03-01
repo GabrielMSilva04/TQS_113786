@@ -24,4 +24,19 @@ public class CarManagerService {
         Car car = carRepository.findByCarId(carId);
         return Optional.ofNullable(car);
     }
+
+    public Optional<Car> findReplacement(Long carId) {
+        Car car = carRepository.findByCarId(carId);
+        if (car == null) {
+            return Optional.empty();
+        }
+
+        List<Car> replacements = carRepository.findByCategoryAndAvailableAndCarIdNot(
+            car.getCategory(), 
+            true, 
+            carId
+        );
+
+        return replacements.stream().findFirst();
+    }
 }
