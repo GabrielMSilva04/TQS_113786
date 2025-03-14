@@ -25,12 +25,17 @@ public class Calculator {
                 val = x.intValue() / y.intValue();
             }
             push(val);
-        } else {
+        } else if (arg instanceof Number) {
             stack.add((Number) arg);
+        } else {
+            throw new IllegalArgumentException("Invalid operation");
         }
     }
 
     public Number value() {
+        if (stack.isEmpty()) {
+            throw new IllegalArgumentException("No value in stack");
+        }
         return stack.getLast().intValue();
     }
 }

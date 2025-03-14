@@ -7,9 +7,17 @@ Feature: Basic Arithmetic
     When I add 4 and 5
     Then the result is 9
 
-  Scenario: Substraction
-    When I substract 7 to 2
+  Scenario: Subtraction
+    When I subtract 7 to 2
     Then the result is 5
+
+  Scenario: Multiplication
+    When I multiply 3 and 4
+    Then the result is 12
+
+  Scenario: Invalid Operation
+    When I perform an invalid operation
+    Then an error should be thrown
 
   Scenario Outline: Several additions
     When I add <a> and <b>
