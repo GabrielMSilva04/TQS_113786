@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   mysql:
     image: mysql:8.0
@@ -16,7 +14,9 @@ services:
       - mysql_data:/var/lib/mysql
 
   app:
-    build: .
+    build: 
+      context: .
+      dockerfile: Dockerfile
     env_file:
       - .env
 
