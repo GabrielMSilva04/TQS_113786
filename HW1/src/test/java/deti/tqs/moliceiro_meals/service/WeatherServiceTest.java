@@ -1,7 +1,6 @@
-package deti.tqs.moliceiro_meals;
+package deti.tqs.moliceiro_meals.service;
 
 import deti.tqs.moliceiro_meals.model.WeatherData;
-import deti.tqs.moliceiro_meals.service.WeatherService;
 import reactor.core.publisher.Mono;
 
 import org.junit.jupiter.api.BeforeEach;

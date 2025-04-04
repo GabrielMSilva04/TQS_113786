@@ -1,8 +1,8 @@
-package deti.tqs.moliceiro_meals;
+package deti.tqs.moliceiro_meals.service;
 
 import deti.tqs.moliceiro_meals.model.Reservation;
 import deti.tqs.moliceiro_meals.repository.ReservationRepository;
-import deti.tqs.moliceiro_meals.service.ReservationService;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;

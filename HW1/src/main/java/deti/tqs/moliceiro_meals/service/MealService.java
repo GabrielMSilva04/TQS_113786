@@ -20,4 +20,17 @@ public class MealService {
     public Meal addMeal(Meal meal) {
         return mealRepository.save(meal);
     }
+
+    public Meal updateMeal(Long mealId, Meal updatedMeal) {
+        Meal meal = mealRepository.findById(mealId)
+                .orElseThrow(() -> new RuntimeException("Meal not found"));
+        meal.setName(updatedMeal.getName());
+        meal.setDescription(updatedMeal.getDescription());
+        meal.setPrice(updatedMeal.getPrice());
+        return mealRepository.save(meal);
+    }
+
+    public void deleteMeal(Long mealId) {
+        mealRepository.deleteById(mealId);
+    }
 }
