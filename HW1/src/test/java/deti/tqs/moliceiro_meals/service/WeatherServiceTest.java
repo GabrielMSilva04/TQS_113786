@@ -70,6 +70,17 @@ class WeatherServiceTest {
     }
 
     @Test
+    void testGetWeatherForecastWithInvalidDate() {
+        // Call the method with an invalid date
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            weatherService.getWeatherForecast("Aveiro", LocalDate.parse("invalid-date"));
+        });
+
+        // Assertions
+        assertEquals("Text 'invalid-date' could not be parsed at index 0", exception.getMessage());
+    }
+
+    @Test
     void testGetForecastForNextDays() {
         // Mock the API response
         WebClient.RequestHeadersUriSpec requestMock = mock(WebClient.RequestHeadersUriSpec.class);
@@ -89,6 +100,47 @@ class WeatherServiceTest {
         assertNotNull(forecast);
         assertEquals(3, forecast.size());
         assertEquals("Aveiro", forecast.get(0).getLocation());
+    }
+
+    @Test
+    void testGetForecastForNextDaysEmptyResponse() {
+        // Mock the API response with an empty forecast
+        WebClient.RequestHeadersUriSpec requestMock = mock(WebClient.RequestHeadersUriSpec.class);
+        WebClient.RequestHeadersSpec headersMock = mock(WebClient.RequestHeadersSpec.class);
+        WebClient.ResponseSpec responseMock = mock(WebClient.ResponseSpec.class);
+
+        when(webClientBuilderMock.build().get()).thenReturn(requestMock);
+        when(requestMock.uri(any(String.class))).thenReturn(headersMock);
+        when(headersMock.retrieve()).thenReturn(responseMock);
+        when(responseMock.bodyToMono(eq(JsonNode.class))).thenReturn(Mono.just(createEmptyMockResponse()));
+
+        // Call the method
+        var forecast = weatherService.getForecastForNextDays("Aveiro", 3);
+
+        // Assertions
+        assertNotNull(forecast);
+        assertTrue(forecast.isEmpty(), "Forecast list should be empty for an empty API response");
+    }
+
+    @Test
+    void testGetWeatherForecastApiError() {
+        // Mock the API response to throw an exception
+        WebClient.RequestHeadersUriSpec requestMock = mock(WebClient.RequestHeadersUriSpec.class);
+        WebClient.RequestHeadersSpec headersMock = mock(WebClient.RequestHeadersSpec.class);
+        WebClient.ResponseSpec responseMock = mock(WebClient.ResponseSpec.class);
+
+        when(webClientBuilderMock.build().get()).thenReturn(requestMock);
+        when(requestMock.uri(any(String.class))).thenReturn(headersMock);
+        when(headersMock.retrieve()).thenReturn(responseMock);
+        when(responseMock.bodyToMono(eq(JsonNode.class))).thenThrow(new RuntimeException("API error"));
+
+        // Call the method
+        WeatherData weatherData = weatherService.getWeatherForecast("Aveiro", LocalDate.now());
+
+        // Assertions
+        assertNotNull(weatherData);
+        assertEquals("Aveiro", weatherData.getLocation());
+        assertEquals("Error fetching data", weatherData.getDescription());
     }
 
     private JsonNode createMockResponse() {
@@ -126,6 +178,23 @@ class WeatherServiceTest {
                             }
                         }
                     ]
+                }
+            }
+        """;
+        try {
+            return mapper.readTree(jsonResponse);
+        } catch (Exception e) {
+            throw new RuntimeException("Error creating mock response", e);
+        }
+    }
+
+    private JsonNode createEmptyMockResponse() {
+        ObjectMapper mapper = new ObjectMapper();
+        String jsonResponse = """
+            {
+                "location": { "name": "Aveiro" },
+                "forecast": {
+                    "forecastday": []
                 }
             }
         """;

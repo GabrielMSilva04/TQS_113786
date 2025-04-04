@@ -52,8 +52,13 @@ public class WeatherService {
             return webClient.get()
                     .uri(url)
                     .retrieve()
-                    .bodyToMono(JsonNode.class) // Use JsonNode for flexible parsing
+                    .bodyToMono(JsonNode.class)
                     .map(response -> {
+                        if (!response.has("forecast") || response.get("forecast").get("forecastday").isEmpty()) {
+                            logger.error("Empty forecast response");
+                            return new WeatherData(date.atStartOfDay(ZoneId.systemDefault()).toInstant(), location, null, "No data available", null, null);
+                        }
+
                         String loc = response.get("location").get("name").asText();
                         JsonNode forecastDay = response.get("forecast").get("forecastday").get(0);
                         Instant timestamp = Instant.parse(forecastDay.get("date").asText() + "T00:00:00Z");
@@ -76,7 +81,10 @@ public class WeatherService {
         LocalDate today = LocalDate.now();
 
         for (int i = 0; i < days; i++) {
-            forecast.add(getWeatherForecast(location, today.plusDays(i)));
+            WeatherData weatherData = getWeatherForecast(location, today.plusDays(i));
+            if (weatherData != null && weatherData.getTemperature() != null) { // Skip null or incomplete data
+                forecast.add(weatherData);
+            }
         }
 
         return forecast;

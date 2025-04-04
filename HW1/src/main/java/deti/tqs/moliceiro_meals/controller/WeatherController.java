@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -23,6 +24,16 @@ public class WeatherController {
 
     @GetMapping("/{location}/forecast")
     public List<WeatherData> getForecastForNextDays(@PathVariable String location, @RequestParam int days) {
-        return weatherService.getForecastForNextDays(location, days);
+        List<WeatherData> forecast = new ArrayList<>();
+        LocalDate today = LocalDate.now();
+
+        for (int i = 0; i < days; i++) {
+            WeatherData weatherData = weatherService.getWeatherForecast(location, today.plusDays(i));
+            if (weatherData != null) {
+                forecast.add(weatherData);
+            }
+        }
+
+        return forecast;
     }
 }
