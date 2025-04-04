@@ -5,29 +5,29 @@ import java.math.BigDecimal;
 
 @Entity
 public class MenuItem {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
     private String name;
     private String description;
     private BigDecimal price;
-    
+
     @Enumerated(EnumType.STRING)
     private MenuItemType type;
-    
+
     @ManyToOne
     @JoinColumn(name = "menu_id")
     private Menu menu;
 
     // Constructors
     public MenuItem() {}
-    
+
     public MenuItem(String name, String description, BigDecimal price, MenuItemType type, Menu menu) {
         this.name = name;
         this.description = description;
-        this.price = price;
+        setPrice(price);
         this.type = type;
         this.menu = menu;
     }
@@ -62,6 +62,9 @@ public class MenuItem {
     }
 
     public void setPrice(BigDecimal price) {
+        if (price.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Price cannot be negative");
+        }
         this.price = price;
     }
 

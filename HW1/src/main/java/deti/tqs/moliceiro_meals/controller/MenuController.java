@@ -27,6 +27,9 @@ public class MenuController {
 
     @PostMapping
     public Menu addMenu(@RequestBody Menu menu) {
+        if (menu.getName() == null || menu.getDescription() == null || menu.getDate() == null || menu.getRestaurant() == null) {
+            throw new RuntimeException("Invalid menu data");
+        }
         return menuService.addMenu(menu);
     }
 

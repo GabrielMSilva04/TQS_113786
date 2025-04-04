@@ -28,4 +28,9 @@ public class ReservationService {
         logger.info("Fetching reservation with ID: {}", id);
         return reservationRepository.findById(id);
     }
+
+    public void deleteReservation(long id) {
+        logger.info("Deleting reservation with ID: {}", id);
+        reservationRepository.deleteById(id);
+    }
 }

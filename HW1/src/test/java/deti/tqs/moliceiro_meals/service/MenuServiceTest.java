@@ -1,6 +1,7 @@
 package deti.tqs.moliceiro_meals.service;
 
 import deti.tqs.moliceiro_meals.model.Menu;
+import deti.tqs.moliceiro_meals.model.Restaurant;
 import deti.tqs.moliceiro_meals.repository.MenuRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -68,7 +69,8 @@ class MenuServiceTest {
 
     @Test
     void testAddMenu() {
-        Menu menu = new Menu("Dinner Menu", "Evening specials", LocalDate.now(), null);
+        Restaurant restaurant = new Restaurant("Moliceiro Meals", "Aveiro", "A cozy restaurant by the canals", "123-456-789");
+        Menu menu = new Menu("Dinner Menu", "Evening specials", LocalDate.now(), restaurant);
         when(menuRepository.save(menu)).thenReturn(menu);
 
         Menu savedMenu = menuService.addMenu(menu);
@@ -76,6 +78,18 @@ class MenuServiceTest {
         assertNotNull(savedMenu);
         assertEquals("Dinner Menu", savedMenu.getName());
         verify(menuRepository, times(1)).save(menu);
+    }
+
+    @Test
+    void testAddMenuWithInvalidData() {
+        Menu invalidMenu = new Menu(null, null, null, null);
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            menuService.addMenu(invalidMenu);
+        });
+
+        assertEquals("Invalid menu data", exception.getMessage());
+        verify(menuRepository, never()).save(any());
     }
 
     @Test

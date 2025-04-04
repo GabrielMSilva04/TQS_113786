@@ -6,6 +6,9 @@ import reactor.core.publisher.Mono;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.LocalDate;
@@ -21,7 +24,10 @@ import static org.mockito.Mockito.*;
 
 class WeatherServiceTest {
 
+    @Autowired
     private WeatherService weatherService;
+
+    @MockBean
     private WebClient.Builder webClientBuilderMock;
 
     @BeforeEach
@@ -133,6 +139,20 @@ class WeatherServiceTest {
         when(requestMock.uri(any(String.class))).thenReturn(headersMock);
         when(headersMock.retrieve()).thenReturn(responseMock);
         when(responseMock.bodyToMono(eq(JsonNode.class))).thenThrow(new RuntimeException("API error"));
+
+        // Call the method
+        WeatherData weatherData = weatherService.getWeatherForecast("Aveiro", LocalDate.now());
+
+        // Assertions
+        assertNotNull(weatherData);
+        assertEquals("Aveiro", weatherData.getLocation());
+        assertEquals("Error fetching data", weatherData.getDescription());
+    }
+
+    @Test
+    void testGetWeatherForecastExceptionHandling() {
+        // Mock the API response to throw an exception
+        when(webClientBuilderMock.build().get()).thenThrow(new RuntimeException("API error"));
 
         // Call the method
         WeatherData weatherData = weatherService.getWeatherForecast("Aveiro", LocalDate.now());

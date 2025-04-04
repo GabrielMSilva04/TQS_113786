@@ -48,4 +48,15 @@ class ReservationServiceTest {
         assertEquals(1L, foundReservation.get().getId());
         verify(reservationRepository, times(1)).findById(1L);
     }
+
+    @Test
+    void testGetReservationByIdNotFound() {
+        Long reservationId = 1L;
+        when(reservationRepository.findById(reservationId)).thenReturn(Optional.empty());
+
+        Optional<Reservation> result = reservationService.getReservationById(reservationId);
+
+        assertTrue(result.isEmpty());
+        verify(reservationRepository, times(1)).findById(reservationId);
+    }
 }

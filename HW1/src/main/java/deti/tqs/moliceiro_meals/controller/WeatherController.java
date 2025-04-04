@@ -4,9 +4,11 @@ import deti.tqs.moliceiro_meals.model.WeatherData;
 import deti.tqs.moliceiro_meals.service.WeatherService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 @RestController
@@ -18,22 +20,16 @@ public class WeatherController {
 
     @GetMapping("/{location}")
     public WeatherData getWeatherForecast(@PathVariable String location, @RequestParam String date) {
-        LocalDate localDate = LocalDate.parse(date);
-        return weatherService.getWeatherForecast(location, localDate);
+        try {
+            LocalDate localDate = LocalDate.parse(date);
+            return weatherService.getWeatherForecast(location, localDate);
+        } catch (DateTimeParseException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid date format. Please use 'yyyy-MM-dd'.");
+        }
     }
 
     @GetMapping("/{location}/forecast")
     public List<WeatherData> getForecastForNextDays(@PathVariable String location, @RequestParam int days) {
-        List<WeatherData> forecast = new ArrayList<>();
-        LocalDate today = LocalDate.now();
-
-        for (int i = 0; i < days; i++) {
-            WeatherData weatherData = weatherService.getWeatherForecast(location, today.plusDays(i));
-            if (weatherData != null) {
-                forecast.add(weatherData);
-            }
-        }
-
-        return forecast;
+        return weatherService.getForecastForNextDays(location, days);
     }
 }

@@ -30,6 +30,9 @@ public class MenuService {
     }
 
     public Menu addMenu(Menu menu) {
+        if (menu.getName() == null || menu.getDescription() == null || menu.getDate() == null || menu.getRestaurant() == null) {
+            throw new RuntimeException("Invalid menu data");
+        }
         return menuRepository.save(menu);
     }
 
