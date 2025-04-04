@@ -16,20 +16,21 @@ public class RestaurantFrontendController {
 
     @GetMapping("/create")
     public String createRestaurantForm(Model model) {
+        model.addAttribute("pageTitle", "Create Restaurant - Moliceiro Meals");
         model.addAttribute("restaurant", new Restaurant());
-        return "create-restaurant";
+        return "pages/create-restaurant";
     }
 
     @PostMapping("/create")
     public String createRestaurant(@ModelAttribute Restaurant restaurant, Model model) {
         restaurantService.saveRestaurant(restaurant);
-        model.addAttribute("successMessage", "Restaurant created successfully!");
         return "redirect:/restaurants";
     }
 
     @GetMapping
     public String listRestaurants(Model model) {
+        model.addAttribute("pageTitle", "Restaurants - Moliceiro Meals");
         model.addAttribute("restaurants", restaurantService.getAllRestaurants());
-        return "restaurants";
+        return "pages/restaurants";
     }
 }

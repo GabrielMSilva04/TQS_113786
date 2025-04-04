@@ -20,14 +20,16 @@ public class ReservationFrontendController {
 
     @GetMapping("/select-restaurant")
     public String selectRestaurant(Model model) {
+        model.addAttribute("pageTitle", "Select Restaurant - Moliceiro Meals");
         model.addAttribute("restaurants", restaurantService.getAllRestaurants());
-        return "select-restaurant";
+        return "pages/select-restaurant";
     }
 
     @GetMapping
     public String reservationForm(@RequestParam Long restaurantId, Model model) {
+        model.addAttribute("pageTitle", "Make a Reservation - Moliceiro Meals");
         model.addAttribute("restaurantId", restaurantId);
-        return "reservation";
+        return "pages/reservation";
     }
 
     @PostMapping
@@ -35,10 +37,11 @@ public class ReservationFrontendController {
         try {
             reservationService.createReservation(reservation, restaurantId);
             model.addAttribute("successMessage", "Reservation created successfully!");
-            return "reservation"; // Redirects back to the form with a success message
+            return "redirect:/reservation/select-restaurant";
         } catch (IllegalArgumentException e) {
             model.addAttribute("errorMessage", e.getMessage());
-            return "reservation"; // Redirects back to the form with an error message
+            model.addAttribute("pageTitle", "Make a Reservation - Moliceiro Meals");
+            return "pages/reservation";
         }
     }
 }

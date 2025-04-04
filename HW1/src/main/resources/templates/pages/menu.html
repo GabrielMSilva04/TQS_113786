@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="layouts/layout">
+<head>
+    <title>Menu - Moliceiro Meals</title>
+</head>
+<body>
+    <section layout:fragment="content">
+        <h1 th:text="'Menu for ' + ${restaurant.name}"></h1>
+        <ul>
+            <li th:each="menu : ${menus}">
+                <h3 th:text="${menu.name}"></h3>
+                <p th:text="${menu.description}"></p>
+            </li>
+        </ul>
+    </section>
+</body>
+</html>

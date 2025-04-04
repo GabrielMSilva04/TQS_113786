@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <title th:text="${pageTitle}">Moliceiro Meals</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-gray-100">
+    <!-- Navigation Bar -->
+    <nav class="bg-blue-500 p-4 text-white">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold">Moliceiro Meals</h1>
+            <ul class="flex space-x-4">
+                <li><a href="/restaurants" class="hover:underline">View Restaurants</a></li>
+                <li><a href="/restaurants/create" class="hover:underline">Create Restaurant</a></li>
+                <li><a href="/reservation/select-restaurant" class="hover:underline">Make a Reservation</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto p-6">
+        <section layout:fragment="content">
+            <!-- Content will be injected here -->
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white p-4 mt-6">
+        <div class="container mx-auto text-center">
+            <p>&copy; 2025 Moliceiro Meals. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>

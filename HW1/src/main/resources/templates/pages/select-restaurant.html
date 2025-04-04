@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="layouts/layout">
+<head>
+    <title>Select a Restaurant - Moliceiro Meals</title>
+</head>
+<body>
+    <section layout:fragment="content">
+        <h1>Select a Restaurant</h1>
+        <ul>
+            <li th:each="restaurant : ${restaurants}">
+                <a th:href="@{/reservation(restaurantId=${restaurant.id})}" th:text="${restaurant.name}"></a>
+            </li>
+        </ul>
+    </section>
+</body>
+</html>
