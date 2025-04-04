@@ -1,9 +1,11 @@
-package deti.tqs.moliceiro_meals.controller;
+package deti.tqs.moliceiro_meals.controller.api;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import deti.tqs.moliceiro_meals.service.MenuService;
 import deti.tqs.moliceiro_meals.model.Menu;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -15,6 +17,8 @@ public class MenuController {
     @Autowired
     private MenuService menuService;
 
+    @Operation(summary = "Get menus by restaurant ID", description = "Fetch all menus for a specific restaurant")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved menus")
     @GetMapping("/{restaurantId}")
     public List<Menu> getMenusByRestaurant(@PathVariable Long restaurantId) {
         return menuService.getMenusByRestaurant(restaurantId);

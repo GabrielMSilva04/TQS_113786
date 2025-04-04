@@ -3,6 +3,8 @@ package deti.tqs.moliceiro_meals.service;
 import deti.tqs.moliceiro_meals.repository.MenuRepository;
 import deti.tqs.moliceiro_meals.model.Menu;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -18,6 +20,7 @@ public class MenuService {
         this.menuRepository = menuRepository;
     }
 
+    @Cacheable(value = "menus", key = "#restaurantId")
     public List<Menu> getMenusByRestaurant(Long restaurantId) {
         return menuRepository.findByRestaurantId(restaurantId);
     }
@@ -45,6 +48,7 @@ public class MenuService {
         return menuRepository.save(menu);
     }
 
+    @CacheEvict(value = "menus", allEntries = true)
     public void deleteMenu(Long menuId) {
         menuRepository.deleteById(menuId);
     }

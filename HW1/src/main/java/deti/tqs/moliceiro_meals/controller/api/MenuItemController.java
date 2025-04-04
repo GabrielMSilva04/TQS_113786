@@ -1,4 +1,4 @@
-package deti.tqs.moliceiro_meals.controller;
+package deti.tqs.moliceiro_meals.controller.api;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;

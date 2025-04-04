@@ -1,6 +1,8 @@
 package deti.tqs.moliceiro_meals.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import deti.tqs.moliceiro_meals.controller.api.MenuItemController;
 import deti.tqs.moliceiro_meals.model.MenuItem;
 import deti.tqs.moliceiro_meals.service.MenuItemService;
 import org.junit.jupiter.api.Test;

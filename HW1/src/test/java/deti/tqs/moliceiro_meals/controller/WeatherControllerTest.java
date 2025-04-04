@@ -1,5 +1,6 @@
 package deti.tqs.moliceiro_meals.controller;
 
+import deti.tqs.moliceiro_meals.controller.api.WeatherController;
 import deti.tqs.moliceiro_meals.model.WeatherData;
 import deti.tqs.moliceiro_meals.service.WeatherService;
 import org.junit.jupiter.api.Test;

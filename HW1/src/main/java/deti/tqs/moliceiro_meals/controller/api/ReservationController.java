@@ -1,4 +1,4 @@
-package deti.tqs.moliceiro_meals.controller;
+package deti.tqs.moliceiro_meals.controller.api;
 
 import deti.tqs.moliceiro_meals.model.Reservation;
 import deti.tqs.moliceiro_meals.service.ReservationService;
@@ -17,7 +17,7 @@ public class ReservationController {
     private ReservationService reservationService;
 
     @PostMapping
-    public Reservation createReservation(@RequestBody Reservation reservation, @RequestParam Long restaurantId) {
+    public Reservation createReservation(@ModelAttribute Reservation reservation, @RequestParam Long restaurantId) {
         return reservationService.createReservation(reservation, restaurantId);
     }
 

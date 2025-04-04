@@ -1,12 +1,15 @@
 package deti.tqs.moliceiro_meals.service;
 
 import deti.tqs.moliceiro_meals.model.Reservation;
+import deti.tqs.moliceiro_meals.model.Restaurant;
 import deti.tqs.moliceiro_meals.repository.ReservationRepository;
+import deti.tqs.moliceiro_meals.repository.RestaurantRepository;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -15,24 +18,36 @@ import static org.mockito.Mockito.*;
 class ReservationServiceTest {
 
     private ReservationRepository reservationRepository;
+    private RestaurantRepository restaurantRepository;
     private ReservationService reservationService;
 
     @BeforeEach
     void setUp() {
         // Mock the ReservationRepository
         reservationRepository = Mockito.mock(ReservationRepository.class);
-        // Inject the mock into the ReservationService
-        reservationService = new ReservationService(reservationRepository);
+        // Mock the RestaurantRepository
+        restaurantRepository = Mockito.mock(RestaurantRepository.class);
+        // Inject the mocks into the ReservationService
+        reservationService = new ReservationService(reservationRepository, restaurantRepository);
     }
 
     @Test
     void testCreateReservation() {
-        Reservation reservation = new Reservation();
+        // Mock the restaurant
+        Restaurant restaurant = new Restaurant("Moliceiro Meals", "Aveiro", "A cozy restaurant by the canals", "123-456-789");
+        when(restaurantRepository.findById(1L)).thenReturn(Optional.of(restaurant));
+
+        // Create a reservation
+        Reservation reservation = new Reservation("John Doe", "john@example.com", "123456789", 4, LocalDateTime.now(), "No special requests", null);
         when(reservationRepository.save(reservation)).thenReturn(reservation);
 
+        // Call the service method
         Reservation savedReservation = reservationService.createReservation(reservation, 1L);
 
+        // Assertions
         assertNotNull(savedReservation);
+        assertEquals(restaurant, savedReservation.getRestaurant());
+        verify(restaurantRepository, times(1)).findById(1L);
         verify(reservationRepository, times(1)).save(reservation);
     }
 
@@ -58,5 +73,32 @@ class ReservationServiceTest {
 
         assertTrue(result.isEmpty());
         verify(reservationRepository, times(1)).findById(reservationId);
+    }
+
+    @Test
+    void testCreateReservationWithValidRestaurant() {
+        Restaurant restaurant = new Restaurant("Moliceiro Meals", "Aveiro", "A cozy restaurant by the canals", "123-456-789");
+        when(restaurantRepository.findById(1L)).thenReturn(Optional.of(restaurant));
+
+        Reservation reservation = new Reservation("John Doe", "john@example.com", "123456789", 4, LocalDateTime.now(), "No special requests", null);
+        when(reservationRepository.save(reservation)).thenReturn(reservation);
+
+        Reservation savedReservation = reservationService.createReservation(reservation, 1L);
+
+        assertNotNull(savedReservation);
+        assertEquals(restaurant, savedReservation.getRestaurant());
+        verify(restaurantRepository, times(1)).findById(1L);
+        verify(reservationRepository, times(1)).save(reservation);
+    }
+
+    @Test
+    void testCreateReservationWithInvalidRestaurant() {
+        when(restaurantRepository.findById(1L)).thenReturn(Optional.empty());
+
+        Reservation reservation = new Reservation("John Doe", "john@example.com", "123456789", 4, LocalDateTime.now(), "No special requests", null);
+
+        assertThrows(IllegalArgumentException.class, () -> reservationService.createReservation(reservation, 1L));
+        verify(restaurantRepository, times(1)).findById(1L);
+        verify(reservationRepository, never()).save(any());
     }
 }

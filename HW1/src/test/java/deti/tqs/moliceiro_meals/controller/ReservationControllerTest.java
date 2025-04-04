@@ -1,9 +1,13 @@
 package deti.tqs.moliceiro_meals.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import deti.tqs.moliceiro_meals.controller.api.ReservationController;
 import deti.tqs.moliceiro_meals.model.Reservation;
 import deti.tqs.moliceiro_meals.model.Restaurant;
 import deti.tqs.moliceiro_meals.service.ReservationService;
+import deti.tqs.moliceiro_meals.repository.ReservationRepository;
+import deti.tqs.moliceiro_meals.repository.RestaurantRepository;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.InjectMocks;
@@ -20,6 +24,7 @@ import java.util.Optional;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 @WebMvcTest(ReservationController.class)
 class ReservationControllerTest {
@@ -33,13 +38,22 @@ class ReservationControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Mock
+    private RestaurantRepository restaurantRepository;
+
+    @Mock
+    private ReservationRepository reservationRepository;
+
     @Test
     void testCreateReservation() throws Exception {
+        // Mock the restaurant and reservation
         Restaurant restaurant = new Restaurant("Moliceiro Meals", "Aveiro", "A cozy restaurant by the canals", "123-456-789");
         Reservation mockReservation = new Reservation("John Doe", "john@example.com", "123456789", 4, LocalDateTime.now(), "No special requests", restaurant);
 
+        // Mock the service call
         when(reservationService.createReservation(any(Reservation.class), eq(1L))).thenReturn(mockReservation);
 
+        // Perform the POST request
         mockMvc.perform(post("/api/reservations?restaurantId=1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(mockReservation)))
@@ -49,6 +63,9 @@ class ReservationControllerTest {
                 .andExpect(jsonPath("$.customerPhone").value("123456789"))
                 .andExpect(jsonPath("$.partySize").value(4))
                 .andExpect(jsonPath("$.specialRequests").value("No special requests"));
+
+        // Verify the service call
+        verify(reservationService, times(1)).createReservation(any(Reservation.class), eq(1L));
     }
 
     @Test

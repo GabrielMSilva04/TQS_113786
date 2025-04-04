@@ -1,4 +1,4 @@
-package deti.tqs.moliceiro_meals.controller;
+package deti.tqs.moliceiro_meals.controller.api;
 
 import deti.tqs.moliceiro_meals.model.Meal;
 import deti.tqs.moliceiro_meals.service.MealService;
