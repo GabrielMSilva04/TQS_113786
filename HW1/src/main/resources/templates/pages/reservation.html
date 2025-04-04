@@ -5,31 +5,36 @@
 </head>
 <body>
     <section layout:fragment="content">
-        <h1>Make a Reservation</h1>
-        <form th:action="@{/reservation(restaurantId=${restaurantId})}" method="post">
-            <label for="name">Name:</label>
-            <input type="text" id="name" name="customerName" required>
-            <br>
-            <label for="email">Email:</label>
-            <input type="email" id="email" name="customerEmail" required>
-            <br>
-            <label for="phone">Phone:</label>
-            <input type="text" id="phone" name="customerPhone" required>
-            <br>
-            <label for="partySize">Party Size:</label>
-            <input type="number" id="partySize" name="partySize" required>
-            <br>
-            <label for="specialRequests">Special Requests:</label>
-            <textarea id="specialRequests" name="specialRequests"></textarea>
-            <br>
-            <button type="submit">Submit</button>
+        <h1 class="text-3xl font-bold mb-6">Make a Reservation</h1>
+        <form th:action="@{/reservation(restaurantId=${restaurantId})}" method="post" class="space-y-6">
+            <div class="form-control">
+                <label for="name" class="label font-semibold">Name:</label>
+                <input type="text" id="name" name="customerName" class="input input-bordered w-full" placeholder="Your Name" required>
+            </div>
+            <div class="form-control">
+                <label for="email" class="label font-semibold">Email:</label>
+                <input type="email" id="email" name="customerEmail" class="input input-bordered w-full" placeholder="Your Email" required>
+            </div>
+            <div class="form-control">
+                <label for="phone" class="label font-semibold">Phone:</label>
+                <input type="text" id="phone" name="customerPhone" class="input input-bordered w-full" placeholder="Your Phone Number" required>
+            </div>
+            <div class="form-control">
+                <label for="partySize" class="label font-semibold">Party Size:</label>
+                <input type="number" id="partySize" name="partySize" class="input input-bordered w-full" placeholder="Number of Guests" required>
+            </div>
+            <div class="form-control">
+                <label for="specialRequests" class="label font-semibold">Special Requests:</label>
+                <textarea id="specialRequests" name="specialRequests" class="textarea textarea-bordered w-full" placeholder="Any special requests"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary w-full">Submit Reservation</button>
         </form>
 
-        <div th:if="${successMessage}">
-            <p th:text="${successMessage}" style="color: green;"></p>
+        <div th:if="${successMessage}" class="mt-6 alert alert-success">
+            <p th:text="${successMessage}"></p>
         </div>
-        <div th:if="${errorMessage}">
-            <p th:text="${errorMessage}" style="color: red;"></p>
+        <div th:if="${errorMessage}" class="mt-6 alert alert-error">
+            <p th:text="${errorMessage}"></p>
         </div>
     </section>
 </body>

@@ -5,12 +5,14 @@
 </head>
 <body>
     <section layout:fragment="content">
-        <h1>Select a Restaurant</h1>
-        <ul>
-            <li th:each="restaurant : ${restaurants}">
-                <a th:href="@{/reservation(restaurantId=${restaurant.id})}" th:text="${restaurant.name}"></a>
-            </li>
-        </ul>
+        <h1 class="text-3xl font-bold mb-6">Select a Restaurant</h1>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div th:each="restaurant : ${restaurants}" class="card bg-white shadow-md p-4">
+                <h2 class="text-xl font-bold mb-2" th:text="${restaurant.name}"></h2>
+                <p class="text-gray-600 mb-4" th:text="'Location: ' + ${restaurant.location}"></p>
+                <a th:href="@{/reservation(restaurantId=${restaurant.id})}" class="btn btn-primary w-full">Select</a>
+            </div>
+        </div>
     </section>
 </body>
 </html>

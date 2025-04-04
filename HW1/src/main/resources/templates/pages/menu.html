@@ -5,13 +5,13 @@
 </head>
 <body>
     <section layout:fragment="content">
-        <h1 th:text="'Menu for ' + ${restaurant.name}"></h1>
-        <ul>
-            <li th:each="menu : ${menus}">
-                <h3 th:text="${menu.name}"></h3>
-                <p th:text="${menu.description}"></p>
-            </li>
-        </ul>
+        <h1 class="text-3xl font-bold mb-6" th:text="'Menu for ' + ${restaurant.name}"></h1>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div th:each="menu : ${menus}" class="card bg-white shadow-md p-4">
+                <h3 class="text-xl font-bold mb-2" th:text="${menu.name}"></h3>
+                <p class="text-gray-600 mb-4" th:text="${menu.description}"></p>
+            </div>
+        </div>
     </section>
 </body>
 </html>
