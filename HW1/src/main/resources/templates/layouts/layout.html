@@ -1,32 +1,38 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<html 
+    xmlns:th="http://www.thymeleaf.org"
+    xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    xml:lang="en"
+    data-theme="winter"
+>
 <head>
     <title th:text="${pageTitle}">Moliceiro Meals</title>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5/themes.css" rel="stylesheet" type="text/css" />
 </head>
-<body class="bg-gray-100">
+<body class="bg-base-200">
     <!-- Navigation Bar -->
-    <nav class="navbar bg-blue-500 text-white">
+    <nav class="navbar bg-primary text-primary-content shadow-lg">
         <div class="container mx-auto flex justify-between items-center">
-            <a href="/" class="text-xl font-bold">Moliceiro Meals</a>
+            <a href="/" class="btn btn-ghost normal-case text-xl">Moliceiro Meals</a>
             <ul class="menu menu-horizontal px-4 space-x-4">
-                <li><a href="/restaurants" class="hover:underline">View Restaurants</a></li>
-                <li><a href="/restaurants/create" class="hover:underline">Create Restaurant</a></li>
-                <li><a href="/reservation/select-restaurant" class="hover:underline">Make a Reservation</a></li>
+                <li><a href="/restaurants" class="btn btn-ghost">View Restaurants</a></li>
+                <li><a href="/restaurants/create" class="btn btn-ghost">Create Restaurant</a></li>
+                <li><a href="/reservation/select-restaurant" class="btn btn-ghost">Make a Reservation</a></li>
             </ul>
         </div>
     </nav>
 
     <!-- Main Content -->
     <div class="container mx-auto p-6">
-        <section layout:fragment="content">
+        <section layout:fragment="content" class="p-6">
             <!-- Content will be injected here -->
         </section>
     </div>
 
     <!-- Footer -->
-    <footer class="footer bg-gray-800 text-white p-4 mt-6">
+    <footer class="footer bg-neutral text-neutral-content p-4 mt-6">
         <div class="container mx-auto text-center">
             <p>&copy; 2025 Moliceiro Meals. All rights reserved.</p>
         </div>

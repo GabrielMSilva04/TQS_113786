@@ -1,5 +1,10 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="layouts/layout">
+<html 
+    xmlns:th="http://www.thymeleaf.org"
+    xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="layouts/layout"
+    xml:lang="en"
+>
 <head>
     <title>Restaurants - Moliceiro Meals</title>
 </head>
@@ -7,7 +12,7 @@
     <section layout:fragment="content">
         <h1 class="text-3xl font-bold mb-6">Restaurants</h1>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div th:each="restaurant : ${restaurants}" class="card bg-white shadow-md p-4">
+            <div th:each="restaurant : ${restaurants}" class="card bg-base-100 shadow-md p-4">
                 <h2 class="text-xl font-bold mb-2" th:text="${restaurant.name}"></h2>
                 <p class="text-gray-600 mb-2" th:text="'Location: ' + ${restaurant.location}"></p>
                 <p class="text-gray-600 mb-2" th:text="'Description: ' + ${restaurant.description}"></p>
