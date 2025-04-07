@@ -11,7 +11,15 @@ public class MoliceiroMealsApplication {
         // Load environment variables from .env
         Dotenv dotenv = Dotenv.configure().load();
 
-        // Start the Spring Boot application
+        // Set system properties for Spring Boot
+        System.setProperty("WEATHER_API_KEY", dotenv.get("WEATHER_API_KEY"));
+        System.setProperty("DB_HOST", dotenv.get("DB_HOST"));
+        System.setProperty("DB_PORT", dotenv.get("DB_PORT"));
+        System.setProperty("DB_NAME", dotenv.get("DB_NAME"));
+        System.setProperty("DB_DRIVER", dotenv.get("DB_DRIVER"));
+        System.setProperty("DB_USERNAME", dotenv.get("DB_USERNAME"));
+        System.setProperty("DB_PASSWORD", dotenv.get("DB_PASSWORD"));
+
         SpringApplication.run(MoliceiroMealsApplication.class, args);
     }
 }

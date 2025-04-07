@@ -10,8 +10,6 @@ import deti.tqs.moliceiro_meals.repository.ReservationRepository;
 import deti.tqs.moliceiro_meals.repository.RestaurantRepository;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.mockito.InjectMocks;
-import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -24,7 +22,6 @@ import java.util.Optional;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 @WebMvcTest(ReservationController.class)
 class ReservationControllerTest {

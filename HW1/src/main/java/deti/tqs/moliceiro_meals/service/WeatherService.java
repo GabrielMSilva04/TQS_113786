@@ -22,6 +22,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class WeatherService {
 
     private static final Logger logger = LoggerFactory.getLogger(WeatherService.class);
+    private static final String FORECAST = "forecast";
+
     private final WebClient webClient;
 
     private final AtomicInteger totalRequests = new AtomicInteger(0);
@@ -54,13 +56,13 @@ public class WeatherService {
                     .retrieve()
                     .bodyToMono(JsonNode.class)
                     .map(response -> {
-                        if (!response.has("forecast") || response.get("forecast").get("forecastday").isEmpty()) {
+                        if (!response.has(FORECAST) || response.get(FORECAST).get("forecastday").isEmpty()) {
                             logger.error("Empty forecast response");
                             return new WeatherData(date.atStartOfDay(ZoneId.systemDefault()).toInstant(), location, null, "No data available", null, null);
                         }
 
                         String loc = response.get("location").get("name").asText();
-                        JsonNode forecastDay = response.get("forecast").get("forecastday").get(0);
+                        JsonNode forecastDay = response.get(FORECAST).get("forecastday").get(0);
                         Instant timestamp = Instant.parse(forecastDay.get("date").asText() + "T00:00:00Z");
                         Double temp = forecastDay.get("day").get("avgtemp_c").asDouble();
                         String desc = forecastDay.get("day").get("condition").get("text").asText();
