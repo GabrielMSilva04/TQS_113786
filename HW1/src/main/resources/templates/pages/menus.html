@@ -1,0 +1,24 @@
+<section layout:fragment="content">
+    <h1 class="text-3xl font-bold mb-6">Menus and Weather Forecast</h1>
+
+    <!-- Weather Forecast Section -->
+    <h2 class="text-2xl font-bold mb-4">Weather Forecast</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div th:each="forecast : ${forecasts}" class="card bg-base-100 shadow-md p-4">
+            <h3 class="text-xl font-bold mb-2" th:text="${forecast.date}"></h3>
+            <p th:text="'Temperature: ' + ${forecast.temperature} + '°C'"></p>
+            <p th:text="'Description: ' + ${forecast.description}"></p>
+        </div>
+    </div>
+
+    <!-- Menus Section -->
+    <h2 class="text-2xl font-bold mb-4">Menus</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div th:each="menu : ${menus}" class="card bg-base-100 shadow-md p-4">
+            <h3 class="text-xl font-bold mb-2" th:text="${menu.name}"></h3>
+            <p th:text="${menu.description}"></p>
+            <p th:text="'Date: ' + ${menu.date}"></p>
+            <a th:href="@{/reservation(restaurantId=${restaurantId})}" class="btn btn-primary">Book a Meal</a>
+        </div>
+    </div>
+</section>

@@ -13,16 +13,7 @@
 </head>
 <body class="bg-base-200">
     <!-- Navigation Bar -->
-    <nav class="navbar bg-primary text-primary-content shadow-lg">
-        <div class="container mx-auto flex justify-between items-center">
-            <a href="/" class="btn btn-ghost normal-case text-xl">Moliceiro Meals</a>
-            <ul class="menu menu-horizontal px-4 space-x-4">
-                <li><a href="/restaurants" class="btn btn-ghost">View Restaurants</a></li>
-                <li><a href="/restaurants/create" class="btn btn-ghost">Create Restaurant</a></li>
-                <li><a href="/reservation/select-restaurant" class="btn btn-ghost">Make a Reservation</a></li>
-            </ul>
-        </div>
-    </nav>
+    <div th:replace="~{fragments/navigation :: navigation}"></div>
 
     <!-- Main Content -->
     <div class="container mx-auto p-6">
@@ -32,10 +23,6 @@
     </div>
 
     <!-- Footer -->
-    <footer class="footer bg-neutral text-neutral-content p-4 mt-6">
-        <div class="container mx-auto text-center">
-            <p>&copy; 2025 Moliceiro Meals. All rights reserved.</p>
-        </div>
-    </footer>
+    <div th:replace="~{fragments/footer :: footer}"></div>
 </body>
 </html>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html 
+    xmlns:th="http://www.thymeleaf.org"
+    xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="layouts/layout"
+    xml:lang="en"
+>
+<head>
+    <title>Reservations - Moliceiro Meals</title>
+</head>
+<body>
+    <section layout:fragment="content">
+        <h1 class="text-3xl font-bold mb-6">Reservations</h1>
+
+        <!-- Pending Reservations -->
+        <h2 class="text-2xl font-bold mb-2">Pending Reservations</h2>
+        <div th:if="${pendingReservations.size() > 0}" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div th:each="reservation : ${pendingReservations}" class="card bg-base-100 shadow-md p-4">
+                <h3 th:text="'Reservation Code: ' + ${reservation.token}"></h3>
+                <p th:text="'Name: ' + ${reservation.customerName}"></p>
+                <p th:text="'Party Size: ' + ${reservation.partySize}"></p>
+                <p th:text="'Status: ' + ${reservation.status}"></p>
+                <form th:action="@{/reservation/{code}/cancel(code=${reservation.token})}" method="post">
+                    <button type="submit" class="btn btn-error">Cancel</button>
+                </form>
+            </div>
+        </div>
+        <p th:unless="${pendingReservations.size() > 0}" class="text-gray-500">No pending reservations.</p>
+
+        <!-- Active Reservations -->
+        <h2 class="text-2xl font-bold mb-2 pt-4">Confirmed Reservations</h2>
+        <div th:if="${activeReservations.size() > 0}" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div th:each="reservation : ${activeReservations}" class="card bg-base-100 shadow-md p-4">
+                <h3 th:text="'Reservation Code: ' + ${reservation.token}"></h3>
+                <p th:text="'Name: ' + ${reservation.customerName}"></p>
+                <p th:text="'Party Size: ' + ${reservation.partySize}"></p>
+                <p th:text="'Status: ' + ${reservation.status}"></p>
+                <form th:action="@{/reservation/{code}/cancel(code=${reservation.token})}" method="post">
+                    <button type="submit" class="btn btn-error">Cancel</button>
+                </form>
+            </div>
+        </div>
+        <p th:unless="${activeReservations.size() > 0}" class="text-gray-500">No confirmed reservations.</p>
+
+        <!-- Cancelled Reservations -->
+        <h2 class="text-2xl font-bold mb-2 pt-4">Cancelled Reservations</h2>
+        <div th:if="${cancelledReservations.size() > 0}" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div th:each="reservation : ${cancelledReservations}" class="card bg-base-100 shadow-md p-4">
+                <h3 th:text="'Reservation Code: ' + ${reservation.token}"></h3>
+                <p th:text="'Name: ' + ${reservation.customerName}"></p>
+                <p th:text="'Party Size: ' + ${reservation.partySize}"></p>
+                <p th:text="'Status: ' + ${reservation.status}"></p>
+            </div>
+        </div>
+        <p th:unless="${cancelledReservations.size() > 0}" class="text-gray-500">No cancelled reservations.</p>
+
+        <!-- Completed Reservations -->
+        <h2 class="text-2xl font-bold mb-2 pt-4">Completed Reservations</h2>
+        <div th:if="${completedReservations.size() > 0}" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div th:each="reservation : ${completedReservations}" class="card bg-base-100 shadow-md p-4">
+                <h3 th:text="'Reservation Code: ' + ${reservation.token}"></h3>
+                <p th:text="'Name: ' + ${reservation.customerName}"></p>
+                <p th:text="'Party Size: ' + ${reservation.partySize}"></p>
+                <p th:text="'Status: ' + ${reservation.status}"></p>
+            </div>
+        </div>
+        <p th:unless="${completedReservations.size() > 0}" class="text-gray-500">No completed reservations.</p>
+    </section>
+</body>
+</html>
