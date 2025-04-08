@@ -54,7 +54,7 @@ class ReservationControllerTest {
         mockMvc.perform(post("/api/reservations?restaurantId=1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(mockReservation)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.customerName").value("John Doe"))
                 .andExpect(jsonPath("$.customerEmail").value("john@example.com"))
                 .andExpect(jsonPath("$.customerPhone").value("123456789"))

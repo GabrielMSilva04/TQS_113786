@@ -1,6 +1,7 @@
 package deti.tqs.moliceiro_meals.model;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,6 +21,7 @@ public class Restaurant {
     private List<Menu> menus = new ArrayList<>();
     
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Reservation> reservations = new ArrayList<>();
 
     // Constructors

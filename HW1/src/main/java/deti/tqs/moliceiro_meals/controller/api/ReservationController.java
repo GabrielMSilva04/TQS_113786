@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -17,13 +18,29 @@ public class ReservationController {
     private ReservationService reservationService;
 
     @PostMapping
-    public Reservation createReservation(@ModelAttribute Reservation reservation, @RequestParam Long restaurantId) {
-        return reservationService.createReservation(reservation, restaurantId);
+    public ResponseEntity<Reservation> createReservation(
+            @RequestBody Reservation reservation,
+            @RequestParam Long restaurantId) {
+        Reservation savedReservation = reservationService.createReservation(reservation, restaurantId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedReservation);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<Reservation>> getAllReservations() {
+        List<Reservation> reservations = reservationService.getAllReservations();
+        return ResponseEntity.ok(reservations);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Reservation> getReservationById(@PathVariable Long id) {
         return reservationService.getReservationById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    }
+
+    @GetMapping("/code/{code}")
+    public ResponseEntity<Reservation> getReservationByCode(@PathVariable String code) {
+        return reservationService.getReservationByCode(code)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }

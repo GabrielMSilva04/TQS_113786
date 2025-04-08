@@ -32,6 +32,12 @@ public class MenuService {
                 .orElseThrow(() -> new RuntimeException("Menu not found for the given date"));
     }
 
+    public List<Menu> getMenusForUpcomingDays(Long restaurantId, int days) {
+        LocalDate today = LocalDate.now();
+        LocalDate endDate = today.plusDays(days);
+        return menuRepository.findByRestaurantIdAndDateBetween(restaurantId, today, endDate);
+    }
+
     public Menu addMenu(Menu menu) {
         if (menu.getName() == null || menu.getDescription() == null || menu.getDate() == null || menu.getRestaurant() == null) {
             throw new RuntimeException("Invalid menu data");

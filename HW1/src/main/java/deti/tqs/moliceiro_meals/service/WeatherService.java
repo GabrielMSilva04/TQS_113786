@@ -41,8 +41,9 @@ public class WeatherService {
         return apiKey;
     }
 
-    @Cacheable(value = "weatherForecast", key = "#location + '-' + #date")
+    //@Cacheable(value = "weatherForecast", key = "#location + '-' + #date")
     public WeatherData getWeatherForecast(String location, LocalDate date) {
+        logger.debug("Cache key: {}-{}", location, date);
         totalRequests.incrementAndGet();
         logger.info("Fetching weather data for {} on {}", location, date);
 
@@ -83,8 +84,10 @@ public class WeatherService {
         LocalDate today = LocalDate.now();
 
         for (int i = 0; i < days; i++) {
-            WeatherData weatherData = getWeatherForecast(location, today.plusDays(i));
-            if (weatherData != null && weatherData.getTemperature() != null) { // Skip null or incomplete data
+            LocalDate forecastDate = today.plusDays(i);
+            logger.debug("Fetching forecast for date: {}", forecastDate);
+            WeatherData weatherData = getWeatherForecast(location, forecastDate);
+            if (weatherData != null && weatherData.getTemperature() != null) {
                 forecast.add(weatherData);
             }
         }
