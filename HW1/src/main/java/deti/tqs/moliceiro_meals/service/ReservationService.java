@@ -7,7 +7,6 @@ import deti.tqs.moliceiro_meals.repository.RestaurantRepository;
 import deti.tqs.moliceiro_meals.model.ReservationStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -19,9 +18,7 @@ public class ReservationService {
 
     private static final Logger logger = LoggerFactory.getLogger(ReservationService.class);
 
-    @Autowired
-    private ReservationRepository reservationRepository;
-
+    private final ReservationRepository reservationRepository;
     private final RestaurantRepository restaurantRepository;
 
     public ReservationService(ReservationRepository reservationRepository, RestaurantRepository restaurantRepository) {

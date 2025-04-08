@@ -1,8 +1,6 @@
 package deti.tqs.moliceiro_meals.controller.api;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
 import deti.tqs.moliceiro_meals.service.MenuItemService;
 import deti.tqs.moliceiro_meals.model.MenuItem;
 
@@ -12,8 +10,11 @@ import java.util.List;
 @RequestMapping("/api/menu-items")
 public class MenuItemController {
 
-    @Autowired
-    private MenuItemService menuItemService;
+    private final MenuItemService menuItemService;
+
+    public MenuItemController(MenuItemService menuItemService) {
+        this.menuItemService = menuItemService;
+    }
 
     @GetMapping("/{menuId}")
     public List<MenuItem> getItemsByMenu(@PathVariable Long menuId) {

@@ -2,7 +2,6 @@ package deti.tqs.moliceiro_meals.service;
 
 import deti.tqs.moliceiro_meals.repository.MenuRepository;
 import deti.tqs.moliceiro_meals.model.Menu;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
@@ -15,7 +14,6 @@ public class MenuService {
 
     private final MenuRepository menuRepository;
 
-    @Autowired
     public MenuService(MenuRepository menuRepository) {
         this.menuRepository = menuRepository;
     }

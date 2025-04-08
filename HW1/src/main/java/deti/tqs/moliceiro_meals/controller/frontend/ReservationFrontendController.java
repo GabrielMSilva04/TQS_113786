@@ -4,7 +4,6 @@ import deti.tqs.moliceiro_meals.model.Reservation;
 import deti.tqs.moliceiro_meals.service.ReservationService;
 import deti.tqs.moliceiro_meals.model.ReservationStatus;
 import deti.tqs.moliceiro_meals.service.RestaurantService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -15,11 +14,13 @@ import java.util.List;
 @RequestMapping("/reservation")
 public class ReservationFrontendController {
 
-    @Autowired
-    private ReservationService reservationService;
+    private final ReservationService reservationService;
+    private final RestaurantService restaurantService;
 
-    @Autowired
-    private RestaurantService restaurantService;
+    public ReservationFrontendController(ReservationService reservationService, RestaurantService restaurantService) {
+        this.reservationService = reservationService;
+        this.restaurantService = restaurantService;
+    }
 
     @GetMapping("/select-restaurant")
     public String selectRestaurant(Model model) {

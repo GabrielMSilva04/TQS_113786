@@ -6,7 +6,6 @@ import deti.tqs.moliceiro_meals.model.Menu;
 import deti.tqs.moliceiro_meals.model.WeatherData;
 import deti.tqs.moliceiro_meals.service.MenuService;
 import deti.tqs.moliceiro_meals.service.WeatherService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -17,14 +16,15 @@ import java.util.List;
 @RequestMapping("/restaurants")
 public class RestaurantFrontendController {
 
-    @Autowired
-    private RestaurantService restaurantService;
+    private final RestaurantService restaurantService;
+    private final MenuService menuService;
+    private final WeatherService weatherService;
 
-    @Autowired
-    private MenuService menuService;
-
-    @Autowired
-    private WeatherService weatherService;
+    public RestaurantFrontendController(RestaurantService restaurantService, MenuService menuService, WeatherService weatherService) {
+        this.restaurantService = restaurantService;
+        this.menuService = menuService;
+        this.weatherService = weatherService;
+    }
 
     @GetMapping("/create")
     public String createRestaurantForm(Model model) {
