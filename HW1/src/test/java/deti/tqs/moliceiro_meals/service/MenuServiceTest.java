@@ -24,7 +24,7 @@ class MenuServiceTest {
     void setUp() {
         menuRepository = mock(MenuRepository.class);
         menuItemRepository = mock(MenuItemRepository.class);
-        menuService = new MenuService(menuRepository, menuItemRepository);
+        menuService = new MenuService(menuRepository, menuItemRepository, new MenuItemService());
     }
 
     @Test

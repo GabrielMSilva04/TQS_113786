@@ -29,14 +29,6 @@ public class CustomerRestaurantController {
         this.menuService = menuService;
     }
 
-    @GetMapping
-    public String home(Model model) {
-        // Add featured restaurants and other welcome page data
-        model.addAttribute("featuredRestaurants", restaurantService.getFeaturedRestaurants());
-        model.addAttribute("pageTitle", "Welcome - Moliceiro Meals");
-        return "pages/customer/home";
-    }
-
     @GetMapping("/restaurants")
     public String getRestaurants(Model model) {
         try {

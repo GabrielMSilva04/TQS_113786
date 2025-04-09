@@ -5,6 +5,8 @@ import deti.tqs.moliceiro_meals.model.Menu;
 import deti.tqs.moliceiro_meals.model.MenuItem;
 import deti.tqs.moliceiro_meals.repository.MenuItemRepository;
 import deti.tqs.moliceiro_meals.model.MenuItemType;
+import deti.tqs.moliceiro_meals.model.Restaurant;
+
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
@@ -17,6 +19,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.HashSet;
 import java.math.BigDecimal;
+import java.util.HashMap;
 
 @Service
 public class MenuService {
@@ -215,5 +218,17 @@ public class MenuService {
         Menu updatedMenu = updateMenu(menuId, menu);
         
         return updatedMenu;
+    }
+
+    public Map<Restaurant, List<Menu>> getTodaysMenusByRestaurant() {
+        List<Menu> menus = menuRepository.findByDate(LocalDate.now());
+        Map<Restaurant, List<Menu>> restaurantMenus = new HashMap<>();
+
+        for (Menu menu : menus) {
+            Restaurant restaurant = menu.getRestaurant();
+            restaurantMenus.computeIfAbsent(restaurant, k -> new ArrayList<>()).add(menu);
+        }
+
+        return restaurantMenus;
     }
 }
