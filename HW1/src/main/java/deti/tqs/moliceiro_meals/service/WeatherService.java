@@ -133,7 +133,8 @@ public class WeatherService {
         logger.info("Fetching weather data for {} on {}", location, date);
 
         try {
-            String url = String.format("/forecast.json?key=%s&q=%s&days=1", apiKey, location);
+            // Add &aqi=yes to get air quality data
+            String url = String.format("/forecast.json?key=%s&q=%s&days=1&aqi=yes", apiKey, location);
 
             JsonNode response = webClient.get()
                     .uri(url)
@@ -141,30 +142,78 @@ public class WeatherService {
                     .bodyToMono(JsonNode.class)
                     .block();
 
-            if (!response.has("forecast") || response.get("forecast").get("forecastday").isEmpty()) {
+            if (response == null || !response.has("forecast") || 
+                !response.get("forecast").has("forecastday") || 
+                response.get("forecast").get("forecastday").isEmpty()) {
                 logger.error("Empty forecast response");
-                return new WeatherData(date.atStartOfDay(ZoneId.systemDefault()).toInstant(), location, null, "No data available", null, null);
+                return new WeatherData(date.atStartOfDay(ZoneId.systemDefault()).toInstant(), 
+                                      location, null, null, null, null, 
+                                      "No data available", null, null, null, null, null, null, null, null, null);
             }
 
-            String loc = response.get("location").get("name").asText();
+            String loc = safeGetString(response.get("location"), "name");
+            if (loc == null) loc = location;
+            
             JsonNode forecastDay = response.get("forecast").get("forecastday").get(0);
-            Instant timestamp = Instant.parse(forecastDay.get("date").asText() + "T00:00:00Z");
-            Double temp = forecastDay.get("day").get("avgtemp_c").asDouble();
-            String desc = forecastDay.get("day").get("condition").get("text").asText();
-            Integer hum = forecastDay.get("day").get("avghumidity").asInt();
-            Double wind = forecastDay.get("day").get("maxwind_kph").asDouble();
+            JsonNode day = forecastDay.get("day");
+            
+            Instant timestamp = Instant.parse(safeGetString(forecastDay, "date") + "T00:00:00Z");
+            Double temp = safeGetDouble(day, "avgtemp_c");
+            Double feelsLike = safeGetDouble(day, "avgfeelslike_c");
+            Double maxTemp = safeGetDouble(day, "maxtemp_c");
+            Double minTemp = safeGetDouble(day, "mintemp_c");
+            String desc = safeGetNestedString(day, "condition", "text");
+            Integer hum = safeGetInt(day, "avghumidity");
+            Double wind = safeGetDouble(day, "maxwind_kph");
+            
+            // Extract wind direction - check multiple possible locations in the API response
+            String windDir = null;
+            // Try getting wind_dir from the day object
+            windDir = safeGetString(day, "wind_dir");
+            
+            // If not available, try getting it from the current condition
+            if (windDir == null && response.has("current") && response.get("current").has("wind_dir")) {
+                windDir = safeGetString(response.get("current"), "wind_dir");
+            }
+            
+            // If still not available, try getting from the first hour of the forecast
+            if (windDir == null && forecastDay.has("hour") && !forecastDay.get("hour").isEmpty()) {
+                JsonNode firstHour = forecastDay.get("hour").get(0);
+                windDir = safeGetString(firstHour, "wind_dir");
+            }
+            
+            Double precip = safeGetDouble(day, "totalprecip_mm");
+            Integer rainChance = safeGetInt(day, "daily_chance_of_rain");
+            Double uv = safeGetDouble(day, "uv");
+            
+            // Get sunrise/sunset
+            JsonNode astroNode = forecastDay.has("astro") ? forecastDay.get("astro") : null;
+            String sunrise = astroNode != null ? safeGetString(astroNode, "sunrise") : null;
+            String sunset = astroNode != null ? safeGetString(astroNode, "sunset") : null;
+            
+            // Get weather icon
+            String icon = safeGetNestedString(day, "condition", "icon");
 
-            return new WeatherData(timestamp, loc, temp, desc, hum, wind);
+            return new WeatherData(
+                timestamp, loc, temp, feelsLike, 
+                maxTemp, minTemp,
+                desc != null ? desc : "No description available", 
+                hum, wind, windDir,  // Pass the extracted wind direction
+                precip, rainChance, uv, 
+                sunrise, sunset, icon
+            );
         } catch (Exception e) {
             logger.error("Error fetching weather data: {}", e.getMessage(), e);
-            return new WeatherData(date.atStartOfDay(ZoneId.systemDefault()).toInstant(), location, null, "Error fetching data", null, null);
+            return new WeatherData(date.atStartOfDay(ZoneId.systemDefault()).toInstant(), 
+                                  location, null, null, null, null, 
+                                  "Error fetching data", null, null, null, null, null, null, null, null, null);
         }
     }
 
     private List<WeatherData> fetchWeatherForMultipleDays(String location, int days) {
         logger.info("Fetching weather forecast for {} for the next {} days", location, days);
         try {
-            String url = String.format("/forecast.json?key=%s&q=%s&days=%d", apiKey, location, days);
+            String url = String.format("/forecast.json?key=%s&q=%s&days=%d&aqi=yes", apiKey, location, days);
 
             JsonNode response = webClient.get()
                     .uri(url)
@@ -172,27 +221,74 @@ public class WeatherService {
                     .bodyToMono(JsonNode.class)
                     .block();
 
-            if (!response.has(FORECAST) || response.get(FORECAST).get("forecastday").isEmpty()) {
+            if (response == null || !response.has(FORECAST) || 
+                !response.get(FORECAST).has("forecastday") || 
+                response.get(FORECAST).get("forecastday").isEmpty()) {
                 logger.error("Empty forecast response");
                 return new ArrayList<>();
             }
 
             List<WeatherData> forecast = new ArrayList<>();
             JsonNode forecastDays = response.get(FORECAST).get("forecastday");
-            for (JsonNode forecastDay : forecastDays) {
-                LocalDate date = LocalDate.parse(forecastDay.get("date").asText());
-                Double temp = forecastDay.get("day").get("avgtemp_c").asDouble();
-                String desc = forecastDay.get("day").get("condition").get("text").asText();
-                Integer hum = forecastDay.get("day").get("avghumidity").asInt();
-                Double wind = forecastDay.get("day").get("maxwind_kph").asDouble();
+            for (int i = 0; i < forecastDays.size(); i++) {
+                JsonNode forecastDay = forecastDays.get(i);
+                String dateStr = safeGetString(forecastDay, "date");
+                if (dateStr == null) continue;
+                
+                LocalDate date = LocalDate.parse(dateStr);
+                JsonNode day = forecastDay.get("day");
+                if (day == null) continue;
+                
+                Double temp = safeGetDouble(day, "avgtemp_c");
+                Double feelsLike = safeGetDouble(day, "avgfeelslike_c");
+                Double maxTemp = safeGetDouble(day, "maxtemp_c");
+                Double minTemp = safeGetDouble(day, "mintemp_c");
+                String desc = safeGetNestedString(day, "condition", "text");
+                Integer hum = safeGetInt(day, "avghumidity");
+                Double wind = safeGetDouble(day, "maxwind_kph");
+                
+                String windDir = null;
+                windDir = safeGetString(day, "wind_dir");
+                
+                // If not available, try getting from the first hour of the forecast
+                if (windDir == null && forecastDay.has("hour") && !forecastDay.get("hour").isEmpty()) {
+                    JsonNode firstHour = forecastDay.get("hour").get(0);
+                    windDir = safeGetString(firstHour, "wind_dir");
+                }
+                
+                // If still not available and it's the first day, try getting from current conditions
+                if (windDir == null && i == 0 && response.has("current") && 
+                    response.get("current").has("wind_dir")) {
+                    windDir = safeGetString(response.get("current"), "wind_dir");
+                }
+                
+                Double precip = safeGetDouble(day, "totalprecip_mm");
+                Integer rainChance = safeGetInt(day, "daily_chance_of_rain");
+                Double uv = safeGetDouble(day, "uv");
+                
+                JsonNode astroNode = forecastDay.has("astro") ? forecastDay.get("astro") : null;
+                String sunrise = astroNode != null ? safeGetString(astroNode, "sunrise") : null;
+                String sunset = astroNode != null ? safeGetString(astroNode, "sunset") : null;
+                
+                // Get weather icon
+                String icon = safeGetNestedString(day, "condition", "icon");
 
                 WeatherData weatherData = new WeatherData(
                         date.atStartOfDay(ZoneId.systemDefault()).toInstant(),
                         location,
                         temp,
-                        desc,
+                        feelsLike,
+                        maxTemp, minTemp,
+                        desc != null ? desc : "No description available",
                         hum,
-                        wind
+                        wind,
+                        windDir,
+                        precip,
+                        rainChance,
+                        uv,
+                        sunrise,
+                        sunset,
+                        icon
                 );
                 forecast.add(weatherData);
             }
@@ -208,5 +304,42 @@ public class WeatherService {
     @Scheduled(fixedRateString = "${weather.cache.ttl:3600000}")
     public void evictCache() {
         logger.info("Evicting weather forecast cache");
+    }
+
+    private Double safeGetDouble(JsonNode node, String field) {
+        if (node != null && node.has(field) && !node.get(field).isNull()) {
+            try {
+                return node.get(field).asDouble();
+            } catch (Exception e) {
+                logger.warn("Failed to parse double value for field {}: {}", field, e.getMessage());
+            }
+        }
+        return null;
+    }
+
+    private Integer safeGetInt(JsonNode node, String field) {
+        if (node != null && node.has(field) && !node.get(field).isNull()) {
+            try {
+                return node.get(field).asInt();
+            } catch (Exception e) {
+                logger.warn("Failed to parse integer value for field {}: {}", field, e.getMessage());
+            }
+        }
+        return null;
+    }
+
+    private String safeGetString(JsonNode node, String field) {
+        if (node != null && node.has(field) && !node.get(field).isNull()) {
+            return node.get(field).asText();
+        }
+        return null;
+    }
+
+    private String safeGetNestedString(JsonNode node, String parentField, String childField) {
+        if (node != null && node.has(parentField) && !node.get(parentField).isNull() && 
+            node.get(parentField).has(childField) && !node.get(parentField).get(childField).isNull()) {
+            return node.get(parentField).get(childField).asText();
+        }
+        return null;
     }
 }

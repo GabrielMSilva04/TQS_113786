@@ -37,12 +37,12 @@
                 
                 <form th:action="@{/customer/reservation}" method="get" class="mt-4">
                     <div class="form-control">
-                        <label class="label">
+                        <label class="label" for="code">
                             <span class="label-text">Reservation Code*</span>
                         </label>
                         <input type="text" name="code" placeholder="Enter code (e.g., ABC12345)" 
                                class="input input-bordered w-full" required>
-                        <label class="label">
+                        <label class="label" for="code">
                             <span class="label-text-alt text-gray-500">You can find your code in your confirmation email</span>
                         </label>
                     </div>

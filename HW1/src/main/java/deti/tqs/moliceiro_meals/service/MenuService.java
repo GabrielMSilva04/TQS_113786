@@ -7,8 +7,6 @@ import deti.tqs.moliceiro_meals.repository.MenuItemRepository;
 import deti.tqs.moliceiro_meals.model.MenuItemType;
 import deti.tqs.moliceiro_meals.model.Restaurant;
 
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;

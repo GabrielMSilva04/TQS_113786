@@ -56,7 +56,8 @@
                     <li th:each="restaurant, iterStat : ${restaurants}" 
                         th:attr="data-id=${restaurant.id}"
                         th:class="${iterStat.first ? 'restaurant-list-item active p-4 cursor-pointer' : 'restaurant-list-item p-4 cursor-pointer'}"
-                        onclick="selectRestaurant(this)">
+                        onclick="selectRestaurant(this)"
+                        onkeydown="if(event.key === 'Enter' || event.key === ' ') { selectRestaurant(this); event.preventDefault(); }">
                         <h3 class="font-bold text-lg" th:text="${restaurant.name}">Restaurant Name</h3>
                         <p class="text-sm text-gray-500" th:text="${restaurant.location}">Location</p>
                     </li>
@@ -76,7 +77,6 @@
                     <div class="card-body">
                         <h2 class="card-title text-2xl" th:text="${restaurant.name}">Restaurant Name</h2>
                         
-                        <!-- Today's menu badge - more safely handled -->
                         <div class="badge badge-primary" th:if="${hasMenuToday != null && hasMenuToday.containsKey(restaurant.id) && hasMenuToday.get(restaurant.id) == true}">Today's Menu Available</div>
                         
                         <p class="text-gray-700 mt-2"><strong>Location:</strong> <span th:text="${restaurant.location}">Location</span></p>
@@ -86,7 +86,7 @@
                         
                         <div class="divider">Menu Preview</div>
                         
-                        <!-- Upcoming menus - with multiple safety checks -->
+                        <!-- Upcoming menus -->
                         <div th:if="${upcomingMenus != null && upcomingMenus.containsKey(restaurant.id) && upcomingMenus.get(restaurant.id) != null && !upcomingMenus.get(restaurant.id).isEmpty()}" class="mb-4">
                             <div th:each="menu, iter : ${upcomingMenus.get(restaurant.id)}" 
                                  th:if="${iter.index < 2}" 
@@ -116,22 +116,17 @@
         </div>
         
         <script>
-            // Function to handle restaurant selection
             function selectRestaurant(element) {
-                // Remove active class from all items
                 document.querySelectorAll('.restaurant-list-item').forEach(item => {
                     item.classList.remove('active');
                 });
                 
-                // Add active class to selected item
                 element.classList.add('active');
                 
-                // Hide all restaurant details
                 document.querySelectorAll('[id^="restaurant-details-"]').forEach(detail => {
                     detail.classList.add('hidden');
                 });
                 
-                // Show the selected restaurant details
                 const restaurantId = element.getAttribute('data-id');
                 const detailElement = document.getElementById('restaurant-details-' + restaurantId);
                 if (detailElement) {

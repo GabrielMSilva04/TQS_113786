@@ -99,7 +99,7 @@
                     
                     <!-- Restaurant selection (if no restaurant was pre-selected) -->
                     <div class="form-section mb-6" th:if="${restaurant == null}">
-                        <label class="label">
+                        <label class="label" for="restaurantId">
                             <span class="label-text font-semibold">Select Restaurant*</span>
                         </label>
                         <select name="restaurantId" class="select select-bordered w-full" required>
@@ -115,7 +115,7 @@
                         <h3 class="text-lg font-semibold mb-4">Personal Information</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="form-control">
-                                <label class="label">
+                                <label class="label" for="customerName">
                                     <span class="label-text">Full Name*</span>
                                 </label>
                                 <input type="text" name="customerName" 
@@ -124,7 +124,7 @@
                             </div>
                             
                             <div class="form-control">
-                                <label class="label">
+                                <label class="label" for="customerPhone">
                                     <span class="label-text">Phone Number*</span>
                                 </label>
                                 <input type="tel" name="customerPhone" 
@@ -133,7 +133,7 @@
                             </div>
                             
                             <div class="form-control">
-                                <label class="label">
+                                <label class="label" for="customerEmail">
                                     <span class="label-text">Email Address*</span>
                                 </label>
                                 <input type="email" name="customerEmail" 
@@ -142,7 +142,7 @@
                             </div>
                             
                             <div class="form-control">
-                                <label class="label">
+                                <label class="label" for="partySize">
                                     <span class="label-text">Party Size*</span>
                                 </label>
                                 <select name="partySize" class="select select-bordered w-full" required>
@@ -163,7 +163,6 @@
                     <div class="form-section mb-6">
                         <h3 class="text-lg font-semibold mb-4">Reservation Date and Time</h3>
                         
-                        <!-- Date selection is disabled if a menu is selected, as the date comes from the menu -->
                         <div th:if="${selectedMenu != null}" class="alert alert-info mb-4">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -173,7 +172,7 @@
                         </div>
                         
                         <div th:unless="${selectedMenu != null}" class="form-control mb-4">
-                            <label class="label">
+                            <label class="label" for="reservationDate">
                                 <span class="label-text">Date*</span>
                             </label>
                             <input type="date" id="reservation-date" name="reservationDate" class="input input-bordered w-full" 
@@ -182,12 +181,12 @@
                         </div>
                         
                         <div class="form-control">
-                            <label class="label">
+                            <label class="label" for="reservationTime">
                                 <span class="label-text">Time*</span>
                             </label>
                             <input type="time" id="reservation-time" name="reservationTime" class="input input-bordered w-full" 
                                    th:value="${reservationTime}" required>
-                            <label class="label">
+                            <label class="label" for="reservationTime">
                                 <span class="label-text-alt text-gray-500">Restaurant hours: 11:00 AM - 11:00 PM</span>
                             </label>
                         </div>
@@ -197,7 +196,7 @@
                     <div class="form-section mb-6">
                         <h3 class="text-lg font-semibold mb-4">Additional Information</h3>
                         <div class="form-control">
-                            <label class="label">
+                            <label class="label" for="specialRequests">
                                 <span class="label-text">Special Requests</span>
                             </label>
                             <textarea name="specialRequests" 
@@ -205,14 +204,6 @@
                                       class="textarea textarea-bordered h-24 w-full"
                                       th:text="${reservationForm != null ? reservationForm.specialRequests : ''}"></textarea>
                         </div>
-                    </div>
-                    
-                    <!-- Terms and Conditions -->
-                    <div class="form-control mb-6">
-                        <label class="cursor-pointer label justify-start gap-2">
-                            <input type="checkbox" id="terms" class="checkbox checkbox-primary" required>
-                            <span class="label-text">I agree to the <a href="#" class="text-primary">reservation policy</a> and <a href="#" class="text-primary">terms of service</a></span>
-                        </label>
                     </div>
                     
                     <!-- Submit Button -->
