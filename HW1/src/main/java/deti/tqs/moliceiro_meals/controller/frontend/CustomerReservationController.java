@@ -32,6 +32,41 @@ public class CustomerReservationController {
 
     private static final Logger logger = LoggerFactory.getLogger(CustomerReservationController.class);
     
+    // Constants for common string literals
+    private static final String ATTR_RESERVATION = "reservation";
+    private static final String ATTR_RESTAURANTS = "restaurants";
+    private static final String ATTR_RESTAURANT = "restaurant";
+    private static final String ATTR_SELECTED_MENU = "selectedMenu";
+    private static final String ATTR_ERROR_MESSAGE = "errorMessage";
+    private static final String ATTR_BREADCRUMBS = "breadcrumbs";
+    private static final String ATTR_PAGE_TITLE = "pageTitle";
+    private static final String ATTR_RESERVATIONS = "reservations";
+    private static final String ATTR_RESERVATION_FORM = "reservationForm";
+    private static final String ATTR_RESERVATION_DATE = "reservationDate";
+    private static final String ATTR_RESERVATION_TIME = "reservationTime";
+    private static final String ATTR_INFO_MESSAGE = "infoMessage";
+    private static final String ATTR_SUCCESS_MESSAGE = "successMessage";
+    
+    // Constants for view paths
+    private static final String VIEW_CREATE_RESERVATION = "pages/customer/create-reservation";
+    private static final String VIEW_RESERVATION_CONFIRMATION = "pages/customer/reservation-confirmation";
+    private static final String VIEW_VIEW_RESERVATIONS = "pages/customer/view-reservations";
+    private static final String VIEW_RESERVATION_DETAILS = "pages/customer/reservation-details";
+    
+    // Constants for breadcrumb labels
+    private static final String LABEL_RESERVATIONS = "Reservations";
+    private static final String LABEL_MY_RESERVATIONS = "My Reservations";
+    private static final String LABEL_MAKE_RESERVATION = "Make Reservation";
+    private static final String LABEL_CONFIRMATION = "Confirmation";
+    
+    // Constants for map keys
+    private static final String KEY_LABEL = "label";
+    private static final String KEY_URL = "url";
+    
+    // Paths for URLs
+    private static final String URL_CUSTOMER_RESERVATIONS = "/customer/reservation/s";
+    private static final String URL_CUSTOMER_RESTAURANT = "/customer/restaurant/";
+    
     private final ReservationService reservationService;
     private final RestaurantService restaurantService;
     private final MenuService menuService;
@@ -65,15 +100,15 @@ public class CustomerReservationController {
         logger.info("Create reservation form requested with restaurantId={}, menuId={}", restaurantId, menuId);
         
         Reservation reservation = new Reservation();
-        model.addAttribute("reservation", reservation);
+        model.addAttribute(ATTR_RESERVATION, reservation);
         
-        model.addAttribute("restaurants", restaurantService.getAllRestaurants());
+        model.addAttribute(ATTR_RESTAURANTS, restaurantService.getAllRestaurants());
         
         List<Map<String, String>> breadcrumbs = new ArrayList<>();
         
         Map<String, String> reservationCrumb = new HashMap<>();
-        reservationCrumb.put("label", "Make Reservation");
-        reservationCrumb.put("url", null);
+        reservationCrumb.put(KEY_LABEL, LABEL_MAKE_RESERVATION);
+        reservationCrumb.put(KEY_URL, null);
         
         breadcrumbs.add(reservationCrumb);
         
@@ -82,11 +117,11 @@ public class CustomerReservationController {
             var restaurantOpt = restaurantService.getRestaurantById(restaurantId);
             if (restaurantOpt.isPresent()) {
                 Restaurant restaurant = restaurantOpt.get();
-                model.addAttribute("restaurant", restaurant);
+                model.addAttribute(ATTR_RESTAURANT, restaurant);
                 
                 Map<String, String> restaurantCrumb = new HashMap<>();
-                restaurantCrumb.put("label", restaurant.getName());
-                restaurantCrumb.put("url", "/customer/restaurant/" + restaurantId);
+                restaurantCrumb.put(KEY_LABEL, restaurant.getName());
+                restaurantCrumb.put(KEY_URL, URL_CUSTOMER_RESTAURANT + restaurantId);
                 breadcrumbs.add(1, restaurantCrumb);
                 
                 // If a menu was selected, add it to the model
@@ -95,11 +130,11 @@ public class CustomerReservationController {
                     Optional<Menu> selectedMenuOpt = menuService.getMenuById(menuId);
                     if (selectedMenuOpt.isPresent()) {
                         Menu selectedMenu = selectedMenuOpt.get();
-                        model.addAttribute("selectedMenu", selectedMenu);
+                        model.addAttribute(ATTR_SELECTED_MENU, selectedMenu);
                         
                         Map<String, String> menuCrumb = new HashMap<>();
-                        menuCrumb.put("label", "Menu: " + selectedMenu.getName());
-                        menuCrumb.put("url", null);
+                        menuCrumb.put(KEY_LABEL, "Menu: " + selectedMenu.getName());
+                        menuCrumb.put(KEY_URL, null);
                         breadcrumbs.add(2, menuCrumb);
                     } else {
                         logger.warn("Menu with ID {} not found", menuId);
@@ -107,20 +142,20 @@ public class CustomerReservationController {
                 }
             } else {
                 logger.warn("Restaurant with ID {} not found", restaurantId);
-                model.addAttribute("errorMessage", "Restaurant not found");
+                model.addAttribute(ATTR_ERROR_MESSAGE, "Restaurant not found");
             }
         }
         
-        model.addAttribute("breadcrumbs", breadcrumbs);
-        model.addAttribute("pageTitle", "Make a Reservation - Moliceiro Meals");
+        model.addAttribute(ATTR_BREADCRUMBS, breadcrumbs);
+        model.addAttribute(ATTR_PAGE_TITLE, "Make a Reservation - Moliceiro Meals");
         
         logger.info("Rendering create-reservation view");
-        return "pages/customer/create-reservation";
+        return VIEW_CREATE_RESERVATION;
     }
 
     @PostMapping("/create")
     public String submitReservation(
-            @ModelAttribute("reservationForm") Reservation reservation,
+            @ModelAttribute(ATTR_RESERVATION_FORM) Reservation reservation,
             @RequestParam Long restaurantId,
             @RequestParam(required = false) Long menuId,
             @RequestParam(required = false) String reservationDate,
@@ -148,27 +183,13 @@ public class CustomerReservationController {
             if (reservationDate != null && !reservationDate.isEmpty() && 
                 reservationTime != null && !reservationTime.isEmpty()) {
                 
-                try {
-                    // Parse the date (expected format yyyy-MM-dd)
-                    LocalDate date = LocalDate.parse(reservationDate);
-                    
-                    // Parse the time (handling different possible formats)
-                    LocalTime time = LocalTime.parse(reservationTime);
-                    
-                    // Combine into LocalDateTime
-                    LocalDateTime dateTime = LocalDateTime.of(date, time);
-                    reservation.setReservationTime(dateTime);
-                    
-                    logger.info("Successfully set reservation time to: {}", dateTime);
-                } catch (DateTimeParseException e) {
-                    logger.error("Error parsing date/time: {}", e.getMessage());
-                    throw new IllegalArgumentException("Please enter a valid date (YYYY-MM-DD) and time (HH:MM)");
-                }
+                parseAndSetReservationDateTime(reservation, reservationDate, reservationTime);
+
             } else {
                 throw new IllegalArgumentException("Reservation date and time are required");
             }
             
-            // Get restaurant
+            // Get the restaurant
             Restaurant restaurant = restaurantService.getRestaurantById(restaurantId)
                     .orElseThrow(() -> new IllegalArgumentException("Restaurant not found"));
             
@@ -188,46 +209,65 @@ public class CustomerReservationController {
             Reservation createdReservation = reservationService.createReservation(reservation, restaurantId);
             
             // Add information for the confirmation page
-            model.addAttribute("reservation", createdReservation);
-            model.addAttribute("restaurant", restaurant);
-            model.addAttribute("pageTitle", "Reservation Confirmed - Moliceiro Meals");
+            model.addAttribute(ATTR_RESERVATION, createdReservation);
+            model.addAttribute(ATTR_RESTAURANT, restaurant);
+            model.addAttribute(ATTR_PAGE_TITLE, "Reservation Confirmed - Moliceiro Meals");
             
             List<Map<String, String>> breadcrumbs = new ArrayList<>();
             
             Map<String, String> reservationsCrumb = new HashMap<>();
-            reservationsCrumb.put("label", "Reservations");
-            reservationsCrumb.put("url", "/customer/reservation/s");
+            reservationsCrumb.put(KEY_LABEL, LABEL_RESERVATIONS);
+            reservationsCrumb.put(KEY_URL, URL_CUSTOMER_RESERVATIONS);
             breadcrumbs.add(reservationsCrumb);
             
             Map<String, String> confirmationCrumb = new HashMap<>();
-            confirmationCrumb.put("label", "Confirmation");
-            confirmationCrumb.put("url", null);
+            confirmationCrumb.put(KEY_LABEL, LABEL_CONFIRMATION);
+            confirmationCrumb.put(KEY_URL, null);
             breadcrumbs.add(confirmationCrumb);
             
-            model.addAttribute("breadcrumbs", breadcrumbs);
+            model.addAttribute(ATTR_BREADCRUMBS, breadcrumbs);
             
-            return "pages/customer/reservation-confirmation";
+            return VIEW_RESERVATION_CONFIRMATION;
         } catch (Exception e) {
             logger.error("Error creating reservation: {}", e.getMessage(), e);
-            model.addAttribute("errorMessage", e.getMessage());
-            model.addAttribute("restaurants", restaurantService.getAllRestaurants());
+            model.addAttribute(ATTR_ERROR_MESSAGE, e.getMessage());
+            model.addAttribute(ATTR_RESTAURANTS, restaurantService.getAllRestaurants());
             
             // Try to re-add the restaurant to the model
             restaurantService.getRestaurantById(restaurantId).ifPresent(restaurant -> 
-                model.addAttribute("restaurant", restaurant));
+                model.addAttribute(ATTR_RESTAURANT, restaurant));
             
             // Re-add menu if it was selected
             if (menuId != null) {
                 menuService.getMenuById(menuId).ifPresent(menu -> 
-                    model.addAttribute("selectedMenu", menu));
+                    model.addAttribute(ATTR_SELECTED_MENU, menu));
             }
             
             // Re-add the form data
-            model.addAttribute("reservationForm", reservation);
-            model.addAttribute("reservationDate", reservationDate);
-            model.addAttribute("reservationTime", reservationTime);
+            model.addAttribute(ATTR_RESERVATION_FORM, reservation);
+            model.addAttribute(ATTR_RESERVATION_DATE, reservationDate);
+            model.addAttribute(ATTR_RESERVATION_TIME, reservationTime);
             
-            return "pages/customer/create-reservation";
+            return VIEW_CREATE_RESERVATION;
+        }
+    }
+
+    private void parseAndSetReservationDateTime(Reservation reservation, String dateString, String timeString) {
+        try {
+            // Parse the date (expected format yyyy-MM-dd)
+            LocalDate date = LocalDate.parse(dateString);
+            
+            // Parse the time (handling different possible formats)
+            LocalTime time = LocalTime.parse(timeString);
+            
+            // Combine into LocalDateTime
+            LocalDateTime dateTime = LocalDateTime.of(date, time);
+            reservation.setReservationTime(dateTime);
+            
+            logger.info("Successfully set reservation time to: {}", dateTime);
+        } catch (DateTimeParseException e) {
+            logger.error("Error parsing date/time: {}", e.getMessage());
+            throw new IllegalArgumentException("Please enter a valid date (YYYY-MM-DD) and time (HH:MM)");
         }
     }
 
@@ -239,75 +279,35 @@ public class CustomerReservationController {
         List<Map<String, String>> breadcrumbs = new ArrayList<>();
         
         Map<String, String> reservationsCrumb = new HashMap<>();
-        reservationsCrumb.put("label", "My Reservations");
-        reservationsCrumb.put("url", null);
+        reservationsCrumb.put(KEY_LABEL, LABEL_MY_RESERVATIONS);
+        reservationsCrumb.put(KEY_URL, null);
         
         breadcrumbs.add(reservationsCrumb);
         
-        model.addAttribute("breadcrumbs", breadcrumbs);
-        model.addAttribute("pageTitle", "My Reservations - Moliceiro Meals");
+        model.addAttribute(ATTR_BREADCRUMBS, breadcrumbs);
+        model.addAttribute(ATTR_PAGE_TITLE, "My Reservations - Moliceiro Meals");
         
-        return "pages/customer/view-reservations";
+        return VIEW_VIEW_RESERVATIONS;
     }
 
     @GetMapping("/{code}")
     public String viewReservation(@PathVariable String code, Model model) {
         try {
-            logger.info("Viewing details for reservation with code: {}", code);
+            var reservation = reservationService.getReservationByCode(code)
+                    .orElseThrow(() -> new IllegalArgumentException("Reservation not found"));
             
-            // Normalize the code
-            String normalizedCode = code.trim().toUpperCase();
-            
-            var reservationOpt = reservationService.getReservationByCode(normalizedCode);
-            if (reservationOpt.isEmpty()) {
-                throw new IllegalArgumentException("Reservation not found with code: " + normalizedCode);
-            }
-            
-            Reservation reservation = reservationOpt.get();
-            logger.info("Found reservation details - ID: {}, Customer: {}, Restaurant: {}", 
-                       reservation.getId(), 
-                       reservation.getCustomerName(),
-                       reservation.getRestaurant() != null ? reservation.getRestaurant().getName() : "Unknown");
-            
-            // Add breadcrumbs with proper HashMap creation to avoid NullPointerException
+            // Add breadcrumbs using Map.of for more concise code
             List<Map<String, String>> breadcrumbs = new ArrayList<>();
+            breadcrumbs.add(Map.of(KEY_LABEL, LABEL_MY_RESERVATIONS, KEY_URL, "/customer/reservations"));
+            breadcrumbs.add(Map.of(KEY_LABEL, "Reservation #" + code, KEY_URL, null));
             
-            Map<String, String> homeMap = new HashMap<>();
-            homeMap.put("label", "Home");
-            homeMap.put("url", "/customer");
-            breadcrumbs.add(homeMap);
-            
-            Map<String, String> reservationsMap = new HashMap<>();
-            reservationsMap.put("label", "My Reservations");
-            reservationsMap.put("url", "/customer/reservation/s");
-            breadcrumbs.add(reservationsMap);
-            
-            Map<String, String> detailsMap = new HashMap<>();
-            detailsMap.put("label", "Reservation #" + code);
-            detailsMap.put("url", null);
-            breadcrumbs.add(detailsMap);
-            
-            model.addAttribute("reservation", reservation);
-            model.addAttribute("breadcrumbs", breadcrumbs);
-            model.addAttribute("pageTitle", "Reservation Details - Moliceiro Meals");
-            
-            return "pages/customer/reservation-details";
+            model.addAttribute(ATTR_RESERVATION, reservation);
+            model.addAttribute(ATTR_BREADCRUMBS, breadcrumbs);
+            model.addAttribute(ATTR_PAGE_TITLE, "Reservation Details - Moliceiro Meals");
+            return VIEW_RESERVATION_DETAILS;
         } catch (Exception e) {
-            logger.error("Error viewing reservation details: {}", e.getMessage(), e);
-            model.addAttribute("errorMessage", e.getMessage());
-            
-            // Add breadcrumbs
-            List<Map<String, String>> breadcrumbs = new ArrayList<>();
-            
-            Map<String, String> reservationsCrumb = new HashMap<>();
-            reservationsCrumb.put("label", "My Reservations");
-            reservationsCrumb.put("url", "/customer/reservation/s");
-            breadcrumbs.add(reservationsCrumb);
-            
-            model.addAttribute("breadcrumbs", breadcrumbs);
-            model.addAttribute("pageTitle", "Reservation Not Found - Moliceiro Meals");
-            
-            return "pages/customer/view-reservations";
+            model.addAttribute(ATTR_ERROR_MESSAGE, e.getMessage());
+            return VIEW_VIEW_RESERVATIONS;
         }
     }
 
@@ -316,12 +316,12 @@ public class CustomerReservationController {
         try {
             logger.info("Cancelling reservation with code: {}", code);
             reservationService.cancelReservation(code);
-            redirectAttributes.addFlashAttribute("successMessage", "Reservation cancelled successfully");
+            redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MESSAGE, "Reservation cancelled successfully");
             // Redirect to the view reservations page
-            return "redirect:/customer/reservation/s";
+            return "redirect:" + URL_CUSTOMER_RESERVATIONS;
         } catch (Exception e) {
             logger.error("Error cancelling reservation: {}", e.getMessage(), e);
-            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, e.getMessage());
             return "redirect:/customer/reservation/" + code;
         }
     }
@@ -335,90 +335,28 @@ public class CustomerReservationController {
         List<Map<String, String>> breadcrumbs = new ArrayList<>();
         
         Map<String, String> myReservationsCrumb = new HashMap<>();
-        myReservationsCrumb.put("label", "My Reservations");
-        myReservationsCrumb.put("url", null);
+        myReservationsCrumb.put(KEY_LABEL, LABEL_MY_RESERVATIONS);
+        myReservationsCrumb.put(KEY_URL, null);  
         
         breadcrumbs.add(myReservationsCrumb);
         
-        model.addAttribute("breadcrumbs", breadcrumbs);
-        model.addAttribute("reservations", reservations);
-        model.addAttribute("pageTitle", "My Reservations - Moliceiro Meals");
+        model.addAttribute(ATTR_BREADCRUMBS, breadcrumbs);
+        model.addAttribute(ATTR_RESERVATIONS, reservations);
+        model.addAttribute(ATTR_PAGE_TITLE, "My Reservations - Moliceiro Meals");
         
         if (reservations.isEmpty()) {
-            model.addAttribute("infoMessage", "No reservations found for email: " + email);
+            model.addAttribute(ATTR_INFO_MESSAGE, "No reservations found for email: " + email);
         }
         
-        return "pages/customer/view-reservations";
+        return VIEW_VIEW_RESERVATIONS;
     }
 
     @GetMapping("")
     public String checkReservation(@RequestParam(required = false) String code, Model model) {
-        logger.info("Looking up reservation with code: '{}'", code);
-        
-        if (code == null || code.trim().isEmpty()) {
-            // Return a form to enter the code
-            List<Map<String, String>> breadcrumbs = new ArrayList<>();
-            
-            Map<String, String> checkCrumb = new HashMap<>();
-            checkCrumb.put("label", "Check Reservation");
-            checkCrumb.put("url", null);
-            
-            breadcrumbs.add(checkCrumb);
-            
-            model.addAttribute("breadcrumbs", breadcrumbs);
-            model.addAttribute("pageTitle", "Check Reservation - Moliceiro Meals");
-            
-            return "pages/customer/check-reservation";
+        if (code != null && !code.trim().isEmpty()) {
+            return "redirect:/customer/reservation/" + code;
         }
         
-        try {
-            // Normalize the code input
-            String normalizedCode = code.trim().toUpperCase();
-            logger.info("Looking up reservation with normalized code: '{}'", normalizedCode);
-            
-            // Try to find the reservation
-            Optional<Reservation> reservationOpt = reservationService.getReservationByCode(normalizedCode);
-            
-            if (reservationOpt.isPresent()) {
-                // Found the reservation, redirect to detailed view
-                Reservation reservation = reservationOpt.get();
-                logger.info("Found reservation: ID={}, Token={}, Customer={}", 
-                           reservation.getId(), reservation.getToken(), reservation.getCustomerName());
-                return "redirect:/customer/reservation/" + reservation.getToken();
-            } else {
-                // Reservation not found
-                logger.warn("No reservation found with code: '{}'", normalizedCode);
-                model.addAttribute("errorMessage", "No reservation found with code: " + normalizedCode);
-                
-                List<Map<String, String>> breadcrumbs = new ArrayList<>();
-                
-                Map<String, String> checkCrumb = new HashMap<>();
-                checkCrumb.put("label", "Check Reservation");
-                checkCrumb.put("url", null);
-                
-                breadcrumbs.add(checkCrumb);
-                
-                model.addAttribute("breadcrumbs", breadcrumbs);
-                model.addAttribute("pageTitle", "Check Reservation - Moliceiro Meals");
-                
-                return "pages/customer/check-reservation";
-            }
-        } catch (Exception e) {
-            logger.error("Error looking up reservation: {}", e.getMessage(), e);
-            model.addAttribute("errorMessage", "An error occurred while looking up your reservation. Please try again.");
-            
-            List<Map<String, String>> breadcrumbs = new ArrayList<>();
-            
-            Map<String, String> checkCrumb = new HashMap<>();
-            checkCrumb.put("label", "Check Reservation");
-            checkCrumb.put("url", null);
-            
-            breadcrumbs.add(checkCrumb);
-            
-            model.addAttribute("breadcrumbs", breadcrumbs);
-            model.addAttribute("pageTitle", "Check Reservation - Moliceiro Meals");
-            
-            return "pages/customer/check-reservation";
-        }
+        return viewReservations(model);
     }
 }

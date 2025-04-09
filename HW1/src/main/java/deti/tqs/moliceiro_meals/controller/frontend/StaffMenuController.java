@@ -261,8 +261,6 @@ public class StaffMenuController {
         logger.info("Saving menu items for menu ID: {}", id);
         
         try {
-            // Process the form data to extract menu items
-            // This is just a placeholder for the actual implementation
             menuService.updateMenuItems(id, formParams);
             
             redirectAttributes.addFlashAttribute("successMessage", "Menu items saved successfully");
