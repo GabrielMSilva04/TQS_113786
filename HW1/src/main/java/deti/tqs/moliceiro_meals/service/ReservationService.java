@@ -188,4 +188,16 @@ public class ReservationService {
     public List<Reservation> getReservationsByEmail(String email) {
         return reservationRepository.findByCustomerEmail(email);
     }
+
+    public List<Reservation> searchReservationsByCustomerName(String name) {
+        logger.info("Searching reservations by customer name: {}", name);
+        return reservationRepository.findByCustomerNameContainingIgnoreCase(name);
+    }
+
+    public void checkInReservation(Long id) {
+        reservationRepository.findById(id).ifPresent(reservation -> {
+            reservation.setStatus(ReservationStatus.CHECKED_IN);
+            reservationRepository.save(reservation);
+        });
+    }
 }

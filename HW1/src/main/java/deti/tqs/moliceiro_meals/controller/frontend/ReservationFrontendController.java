@@ -151,7 +151,7 @@ public class ReservationFrontendController {
                 .orElseThrow(() -> new IllegalArgumentException("Reservation not found"));
         reservation.setStatus(ReservationStatus.CONFIRMED);
         reservationService.updateReservation(reservation);
-        return "redirect:/reservation/staff/list";
+        return "redirect:/staff/reservations";
     }
 
     @PostMapping("/staff/cancel/{id}")
@@ -160,7 +160,7 @@ public class ReservationFrontendController {
                 .orElseThrow(() -> new IllegalArgumentException("Reservation not found"));
         reservation.setStatus(ReservationStatus.CANCELLED);
         reservationService.updateReservation(reservation);
-        return "redirect:/reservation/staff/list";
+        return "redirect:/staff/reservations";
     }
 
     @PostMapping("/staff/checkin/{id}")
@@ -169,7 +169,7 @@ public class ReservationFrontendController {
                 .orElseThrow(() -> new IllegalArgumentException("Reservation not found"));
         reservation.setStatus(ReservationStatus.CHECKED_IN);
         reservationService.updateReservation(reservation);
-        return "redirect:/reservation/staff/list";
+        return "redirect:/staff/reservations";
     }
 
     @PostMapping("/staff/complete/{id}")
@@ -178,6 +178,6 @@ public class ReservationFrontendController {
                 .orElseThrow(() -> new IllegalArgumentException("Reservation not found"));
         reservation.setStatus(ReservationStatus.COMPLETED);
         reservationService.updateReservation(reservation);
-        return "redirect:/reservation/staff/list";
+        return "redirect:/staff/reservations";
     }
 }

@@ -2,7 +2,7 @@
 <html 
     xmlns:th="http://www.thymeleaf.org"
     xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-    layout:decorate="layouts/staff-layout"
+    layout:decorate="~{layouts/staff-layout}"
     xml:lang="en"
 >
 <head>
@@ -92,14 +92,19 @@
                     <tr th:each="reservation : ${recentReservations}" th:if="${recentReservations != null}">
                         <td th:text="${reservation.token}"></td>
                         <td th:text="${reservation.customerName}"></td>
-                        <td th:text="${reservation.restaurant.name}"></td>
+                        <td th:text="${reservation.restaurant != null ? reservation.restaurant.name : 'Unknown'}"></td>
                         <td th:text="${#temporals.format(reservation.reservationTime, 'yyyy-MM-dd HH:mm')}"></td>
                         <td>
                             <span class="badge" 
-                                  th:classappend="${reservation.status == T(deti.tqs.moliceiro_meals.model.ReservationStatus).PENDING ? 'badge-warning' : 
-                                                    reservation.status == T(deti.tqs.moliceiro_meals.model.ReservationStatus).CONFIRMED ? 'badge-success' : 
-                                                    'badge-error'}"
-                                  th:text="${reservation.status}">
+                                  th:with="status=${reservation.status?.name() ?: 'UNKNOWN'}"
+                                  th:classappend="${
+                                    status == 'PENDING' ? 'badge-warning' : 
+                                    status == 'CONFIRMED' ? 'badge-success' :
+                                    status == 'CHECKED_IN' ? 'badge-info' :
+                                    status == 'COMPLETED' ? 'badge-secondary' :
+                                    'badge-error'
+                                  }"
+                                  th:text="${status}">
                             </span>
                         </td>
                         <td>
