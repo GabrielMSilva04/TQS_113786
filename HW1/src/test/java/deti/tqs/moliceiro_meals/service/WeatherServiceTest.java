@@ -9,6 +9,8 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.Cache;
 
 import java.time.LocalDate;
 
@@ -36,7 +38,12 @@ class WeatherServiceTest {
         when(webClientBuilderMock.baseUrl(any(String.class))).thenReturn(webClientBuilderMock);
         when(webClientBuilderMock.build()).thenReturn(webClientMock);
 
-        weatherService = new WeatherService(webClientBuilderMock);
+        // Mock the cache manager
+        CacheManager cacheManagerMock = Mockito.mock(CacheManager.class);
+        Cache cacheMock = Mockito.mock(Cache.class);
+        when(cacheManagerMock.getCache("weatherForecast")).thenReturn(cacheMock);
+        
+        weatherService = new WeatherService(webClientBuilderMock, cacheManagerMock);
     }
 
     @Test
@@ -160,6 +167,60 @@ class WeatherServiceTest {
         assertNotNull(weatherData);
         assertEquals("Aveiro", weatherData.getLocation());
         assertEquals("Error fetching data", weatherData.getDescription());
+    }
+
+    @Test
+    void testGetWeatherForecastWithTracking() throws Exception {
+        // Mock the API response
+        WebClient.RequestHeadersUriSpec requestMock = mock(WebClient.RequestHeadersUriSpec.class);
+        WebClient.RequestHeadersSpec headersMock = mock(WebClient.RequestHeadersSpec.class);
+        WebClient.ResponseSpec responseMock = mock(WebClient.ResponseSpec.class);
+        
+        // Mock the cache
+        Cache cacheMock = mock(Cache.class);
+        CacheManager cacheManagerMock = mock(CacheManager.class);
+        when(cacheManagerMock.getCache("weatherForecast")).thenReturn(cacheMock);
+        when(cacheMock.get(any(String.class))).thenReturn(null); // No cached value
+        
+        when(webClientBuilderMock.build().get()).thenReturn(requestMock);
+        when(requestMock.uri(any(String.class))).thenReturn(headersMock);
+        when(headersMock.retrieve()).thenReturn(responseMock);
+        when(responseMock.bodyToMono(eq(JsonNode.class))).thenReturn(Mono.just(createMockResponse()));
+
+        // Call the tracking method
+        WeatherData weatherData = weatherService.getWeatherForecastWithTracking("Aveiro", LocalDate.now());
+
+        // Assertions
+        assertNotNull(weatherData);
+        assertEquals("Aveiro", weatherData.getLocation());
+        assertEquals("Heavy rain", weatherData.getDescription());
+    }
+
+    @Test
+    void testGetForecastForNextDaysWithTracking() {
+        // Mock the API response
+        WebClient.RequestHeadersUriSpec requestMock = mock(WebClient.RequestHeadersUriSpec.class);
+        WebClient.RequestHeadersSpec headersMock = mock(WebClient.RequestHeadersSpec.class);
+        WebClient.ResponseSpec responseMock = mock(WebClient.ResponseSpec.class);
+        
+        // Mock the cache
+        Cache cacheMock = mock(Cache.class);
+        CacheManager cacheManagerMock = mock(CacheManager.class);
+        when(cacheManagerMock.getCache("weatherForecast")).thenReturn(cacheMock);
+        when(cacheMock.get(any(String.class))).thenReturn(null); // No cached value
+        
+        when(webClientBuilderMock.build().get()).thenReturn(requestMock);
+        when(requestMock.uri(any(String.class))).thenReturn(headersMock);
+        when(headersMock.retrieve()).thenReturn(responseMock);
+        when(responseMock.bodyToMono(eq(JsonNode.class))).thenReturn(Mono.just(createMockResponse()));
+
+        // Call the tracking method
+        var forecast = weatherService.getForecastForNextDaysWithTracking("Aveiro", 3);
+
+        // Assertions
+        assertNotNull(forecast);
+        assertEquals(3, forecast.size());
+        assertEquals("Aveiro", forecast.get(0).getLocation());
     }
 
     private JsonNode createMockResponse() {
