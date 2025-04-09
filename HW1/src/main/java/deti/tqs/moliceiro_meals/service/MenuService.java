@@ -20,7 +20,6 @@ public class MenuService {
         this.menuRepository = menuRepository;
     }
 
-    @Cacheable(value = "menus", key = "#restaurantId")
     public List<Menu> getMenusByRestaurant(Long restaurantId) {
         return menuRepository.findByRestaurantId(restaurantId);
     }

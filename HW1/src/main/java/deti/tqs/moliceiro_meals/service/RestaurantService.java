@@ -57,4 +57,9 @@ public class RestaurantService {
         int featuredCount = Math.min(3, allRestaurants.size());
         return allRestaurants.subList(0, featuredCount);
     }
+
+    public void updateRestaurant(Restaurant restaurant) {
+        logger.info("Updating restaurant with ID: {}", restaurant.getId());
+        restaurantRepository.save(restaurant);
+    }
 }

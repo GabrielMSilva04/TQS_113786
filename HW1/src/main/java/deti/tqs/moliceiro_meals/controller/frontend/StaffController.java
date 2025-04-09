@@ -46,32 +46,4 @@ public class StaffController {
         
         return "pages/staff/home";
     }
-
-    @GetMapping("/restaurants")
-    public String manageRestaurants(Model model) {
-        logger.info("Accessing restaurant management");
-        
-        model.addAttribute("restaurants", restaurantService.getAllRestaurants());
-        model.addAttribute("pageTitle", "Restaurant Management - Staff View");
-        
-        return "pages/staff/restaurants";
-    }
-
-    @GetMapping("/restaurants/{id}")
-    public String viewRestaurant(@PathVariable Long id, Model model) {
-        logger.info("Viewing restaurant details for ID: {}", id);
-        
-        var restaurantOpt = restaurantService.getRestaurantById(id);
-        if (restaurantOpt.isEmpty()) {
-            model.addAttribute("errorMessage", "Restaurant not found");
-            return "redirect:/staff/restaurants";
-        }
-        
-        var restaurant = restaurantOpt.get();
-        model.addAttribute("restaurant", restaurant);
-        model.addAttribute("reservations", reservationService.getReservationsByRestaurant(id));
-        model.addAttribute("pageTitle", restaurant.getName() + " - Staff View");
-        
-        return "pages/staff/restaurant-details";
-    }
 }
