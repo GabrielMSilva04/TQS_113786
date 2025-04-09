@@ -70,6 +70,10 @@ This application includes a data initializer that will automatically load exampl
 mvn clean install
 mvn spring-boot:run
 ```
+or
+```bash
+docker-compose up --build
+```
 
 5. Access the application at `http://localhost:8080`
 
