@@ -1,5 +1,6 @@
-package deti.tqs.moliceiro_meals.service;
+package deti.tqs.moliceiro_meals.unit.service;
 
+import deti.tqs.moliceiro_meals.service.WeatherService;
 import deti.tqs.moliceiro_meals.model.WeatherData;
 import reactor.core.publisher.Mono;
 

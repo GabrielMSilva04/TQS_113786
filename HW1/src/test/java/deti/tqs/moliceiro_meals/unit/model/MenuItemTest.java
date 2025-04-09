@@ -1,5 +1,8 @@
-package deti.tqs.moliceiro_meals.model;
+package deti.tqs.moliceiro_meals.unit.model;
 
+import deti.tqs.moliceiro_meals.model.Menu;
+import deti.tqs.moliceiro_meals.model.MenuItem;
+import deti.tqs.moliceiro_meals.model.MenuItemType;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;

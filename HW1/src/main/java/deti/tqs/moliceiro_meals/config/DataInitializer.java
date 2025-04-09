@@ -109,24 +109,37 @@ public class DataInitializer {
         
         LocalDate today = LocalDate.now();
         
-        // Create today's lunch menu
-        Menu todayLunchMenu = new Menu(
-            "Daily Lunch Special", 
+        // Create today's menus
+        Menu todayLunchMenu = createMenu("Daily Lunch Special", 
             "Our chef's lunch selection featuring fresh and light meals", 
-            today, 
-            restaurant
-        );
+            today, restaurant);
         menuRepository.save(todayLunchMenu);
         
-        // Create today's dinner menu
-        Menu todayDinnerMenu = new Menu(
-            "Evening Special Menu", 
+        Menu todayDinnerMenu = createMenu("Evening Special Menu", 
             "Elegant dinner options prepared with seasonal ingredients", 
-            today, 
-            restaurant
-        );
+            today, restaurant);
         menuRepository.save(todayDinnerMenu);
         
+        // Create menu items for today's lunch
+        List<MenuItem> todayLunchItems = createTodayLunchItems(restaurant, todayLunchMenu);
+        menuItemRepository.saveAll(todayLunchItems);
+        logger.debug("Created {} items for lunch menu", todayLunchItems.size());
+        
+        // Create menu items for today's dinner
+        List<MenuItem> todayDinnerItems = createTodayDinnerItems(restaurant, todayDinnerMenu);
+        menuItemRepository.saveAll(todayDinnerItems);
+        
+        // Create menus for upcoming days
+        createFutureMenus(restaurant, today, menuRepository, menuItemRepository);
+        
+        logger.debug("Created future menus for restaurant: {}", restaurant.getName());
+    }
+
+    private Menu createMenu(String name, String description, LocalDate date, Restaurant restaurant) {
+        return new Menu(name, description, date, restaurant);
+    }
+
+    private List<MenuItem> createTodayLunchItems(Restaurant restaurant, Menu todayLunchMenu) {
         List<MenuItem> todayLunchItems = new ArrayList<>();
         
         if (restaurant.getName().equals(RESTAURANT_MOLICEIRO)) {
@@ -159,10 +172,10 @@ public class DataInitializer {
             todayLunchItems.add(new MenuItem("Craft Beer", "Selection of local brews", new BigDecimal("4.95"), MenuItemType.BEVERAGE, todayLunchMenu));
         }
         
-        menuItemRepository.saveAll(todayLunchItems);
-        logger.debug("Created {} items for lunch menu", todayLunchItems.size());
-        
-        // Add menu items to today's dinner menu - varied by restaurant
+        return todayLunchItems;
+    }
+
+    private List<MenuItem> createTodayDinnerItems(Restaurant restaurant, Menu todayDinnerMenu) {
         List<MenuItem> todayDinnerItems = new ArrayList<>();
         
         if (restaurant.getName().equals(RESTAURANT_MOLICEIRO)) {
@@ -195,70 +208,85 @@ public class DataInitializer {
             todayDinnerItems.add(new MenuItem("Premium Beer Flight", "Tasting of 4 craft beers", new BigDecimal("8.95"), MenuItemType.BEVERAGE, todayDinnerMenu));
         }
         
-        menuItemRepository.saveAll(todayDinnerItems);
+        return todayDinnerItems;
+    }
+
+    private void createFutureMenus(
+            Restaurant restaurant, 
+            LocalDate today,
+            MenuRepository menuRepository,
+            MenuItemRepository menuItemRepository) {
         
-        // Create menus for upcoming days (one lunch and one dinner menu per day)
         for (int i = 1; i <= 7; i++) {
             LocalDate futureDate = today.plusDays(i);
             String dayName = futureDate.getDayOfWeek().toString().toLowerCase();
+            dayName = dayName.substring(0, 1).toUpperCase() + dayName.substring(1);
             
-            // Lunch menu for future days
-            Menu futureLunchMenu = new Menu(
-                dayName.substring(0, 1).toUpperCase() + dayName.substring(1) + " Lunch Special", 
-                "Our chef's selection for " + dayName + " lunch", 
-                futureDate, 
-                restaurant
-            );
+            // Create and save future lunch menu
+            Menu futureLunchMenu = createMenu(
+                dayName + " Lunch Special", 
+                "Our chef's selection for " + dayName.toLowerCase() + " lunch", 
+                futureDate, restaurant);
             menuRepository.save(futureLunchMenu);
             
-            // Dinner menu for future days
-            Menu futureDinnerMenu = new Menu(
-                dayName.substring(0, 1).toUpperCase() + dayName.substring(1) + " Dinner Delight", 
-                "Evening specialties for " + dayName, 
-                futureDate, 
-                restaurant
-            );
+            // Create and save future dinner menu
+            Menu futureDinnerMenu = createMenu(
+                dayName + " Dinner Delight", 
+                "Evening specialties for " + dayName.toLowerCase(), 
+                futureDate, restaurant);
             menuRepository.save(futureDinnerMenu);
             
-            // Add different items to future lunch menu
-            List<MenuItem> futureLunchItems = new ArrayList<>();
-            
-            if (i % 2 == 0) { // Even days
-                futureLunchItems.add(new MenuItem("Tomato Soup", "Fresh tomato with basil", new BigDecimal("4.95"), MenuItemType.APPETIZER, futureLunchMenu));
-                futureLunchItems.add(new MenuItem("Grilled Chicken Salad", "Mixed greens with grilled chicken", new BigDecimal("9.95"), MenuItemType.MAIN_COURSE, futureLunchMenu));
-                futureLunchItems.add(new MenuItem("Vegetable Quiche", "Seasonal vegetables in pastry", new BigDecimal("8.50"), MenuItemType.MAIN_COURSE, futureLunchMenu));
-                futureLunchItems.add(new MenuItem("Fruit Salad", "Fresh seasonal fruits", new BigDecimal("4.50"), MenuItemType.DESSERT, futureLunchMenu));
-            } else { // Odd days
-                futureLunchItems.add(new MenuItem("Gazpacho", "Cold vegetable soup", new BigDecimal("5.50"), MenuItemType.APPETIZER, futureLunchMenu));
-                futureLunchItems.add(new MenuItem("Fish of the Day", "Grilled with lemon butter", new BigDecimal("13.95"), MenuItemType.MAIN_COURSE, futureLunchMenu));
-                futureLunchItems.add(new MenuItem("Pasta Primavera", "With seasonal vegetables", new BigDecimal("10.50"), MenuItemType.MAIN_COURSE, futureLunchMenu));
-                futureLunchItems.add(new MenuItem("Chocolate Brownie", "With vanilla ice cream", new BigDecimal("5.95"), MenuItemType.DESSERT, futureLunchMenu));
-            }
+            // Create and save future lunch items
+            List<MenuItem> futureLunchItems = createFutureLunchItems(i, futureLunchMenu);
             menuItemRepository.saveAll(futureLunchItems);
             
-            // Add different items to future dinner menu
-            List<MenuItem> futureDinnerItems = new ArrayList<>();
-            
-            if (i % 3 == 0) { // Every third day
-                futureDinnerItems.add(new MenuItem("Stuffed Mushrooms", "With herb cream cheese", new BigDecimal("7.95"), MenuItemType.APPETIZER, futureDinnerMenu));
-                futureDinnerItems.add(new MenuItem("Prime Rib", "Slow-roasted with jus", new BigDecimal("24.95"), MenuItemType.MAIN_COURSE, futureDinnerMenu));
-                futureDinnerItems.add(new MenuItem("Seafood Linguine", "Mixed seafood in white wine sauce", new BigDecimal("18.50"), MenuItemType.MAIN_COURSE, futureDinnerMenu));
-                futureDinnerItems.add(new MenuItem("Tiramisu", "Classic Italian dessert", new BigDecimal("6.95"), MenuItemType.DESSERT, futureDinnerMenu));
-            } else if (i % 3 == 1) { // Remainder 1
-                futureDinnerItems.add(new MenuItem("Shrimp Cocktail", "With homemade sauce", new BigDecimal("9.95"), MenuItemType.APPETIZER, futureDinnerMenu));
-                futureDinnerItems.add(new MenuItem("Duck Confit", "With orange sauce", new BigDecimal("22.50"), MenuItemType.MAIN_COURSE, futureDinnerMenu));
-                futureDinnerItems.add(new MenuItem("Vegetable Curry", "Aromatic with basmati rice", new BigDecimal("15.95"), MenuItemType.MAIN_COURSE, futureDinnerMenu));
-                futureDinnerItems.add(new MenuItem("Cheesecake", "New York style", new BigDecimal("7.50"), MenuItemType.DESSERT, futureDinnerMenu));
-            } else { // Remainder 2
-                futureDinnerItems.add(new MenuItem("Tuna Tartare", "With avocado and ponzu", new BigDecimal("12.95"), MenuItemType.APPETIZER, futureDinnerMenu));
-                futureDinnerItems.add(new MenuItem("Lamb Chops", "With mint sauce", new BigDecimal("26.50"), MenuItemType.MAIN_COURSE, futureDinnerMenu));
-                futureDinnerItems.add(new MenuItem("Eggplant Parmesan", "Baked with marinara", new BigDecimal("14.95"), MenuItemType.MAIN_COURSE, futureDinnerMenu));
-                futureDinnerItems.add(new MenuItem("Crème Brûlée", "With caramelized sugar", new BigDecimal("6.95"), MenuItemType.DESSERT, futureDinnerMenu));
-            }
+            // Create and save future dinner items
+            List<MenuItem> futureDinnerItems = createFutureDinnerItems(i, futureDinnerMenu);
             menuItemRepository.saveAll(futureDinnerItems);
         }
+    }
+
+    private List<MenuItem> createFutureLunchItems(int dayOffset, Menu futureLunchMenu) {
+        List<MenuItem> futureLunchItems = new ArrayList<>();
         
-        logger.debug("Created future menus for restaurant: {}", restaurant.getName());
+        if (dayOffset % 2 == 0) { // Even days
+            futureLunchItems.add(new MenuItem("Tomato Soup", "Fresh tomato with basil", new BigDecimal("4.95"), MenuItemType.APPETIZER, futureLunchMenu));
+            futureLunchItems.add(new MenuItem("Grilled Chicken Salad", "Mixed greens with grilled chicken", new BigDecimal("9.95"), MenuItemType.MAIN_COURSE, futureLunchMenu));
+            futureLunchItems.add(new MenuItem("Vegetable Quiche", "Seasonal vegetables in pastry", new BigDecimal("8.50"), MenuItemType.MAIN_COURSE, futureLunchMenu));
+            futureLunchItems.add(new MenuItem("Fruit Salad", "Fresh seasonal fruits", new BigDecimal("4.50"), MenuItemType.DESSERT, futureLunchMenu));
+        } else { // Odd days
+            futureLunchItems.add(new MenuItem("Gazpacho", "Cold vegetable soup", new BigDecimal("5.50"), MenuItemType.APPETIZER, futureLunchMenu));
+            futureLunchItems.add(new MenuItem("Fish of the Day", "Grilled with lemon butter", new BigDecimal("13.95"), MenuItemType.MAIN_COURSE, futureLunchMenu));
+            futureLunchItems.add(new MenuItem("Pasta Primavera", "With seasonal vegetables", new BigDecimal("10.50"), MenuItemType.MAIN_COURSE, futureLunchMenu));
+            futureLunchItems.add(new MenuItem("Chocolate Brownie", "With vanilla ice cream", new BigDecimal("5.95"), MenuItemType.DESSERT, futureLunchMenu));
+        }
+        
+        return futureLunchItems;
+    }
+
+    private List<MenuItem> createFutureDinnerItems(int dayOffset, Menu futureDinnerMenu) {
+        List<MenuItem> futureDinnerItems = new ArrayList<>();
+        
+        int remainder = dayOffset % 3;
+        
+        if (remainder == 0) { // Every third day
+            futureDinnerItems.add(new MenuItem("Stuffed Mushrooms", "With herb cream cheese", new BigDecimal("7.95"), MenuItemType.APPETIZER, futureDinnerMenu));
+            futureDinnerItems.add(new MenuItem("Prime Rib", "Slow-roasted with jus", new BigDecimal("24.95"), MenuItemType.MAIN_COURSE, futureDinnerMenu));
+            futureDinnerItems.add(new MenuItem("Seafood Linguine", "Mixed seafood in white wine sauce", new BigDecimal("18.50"), MenuItemType.MAIN_COURSE, futureDinnerMenu));
+            futureDinnerItems.add(new MenuItem("Tiramisu", "Classic Italian dessert", new BigDecimal("6.95"), MenuItemType.DESSERT, futureDinnerMenu));
+        } else if (remainder == 1) { // Remainder 1
+            futureDinnerItems.add(new MenuItem("Shrimp Cocktail", "With homemade sauce", new BigDecimal("9.95"), MenuItemType.APPETIZER, futureDinnerMenu));
+            futureDinnerItems.add(new MenuItem("Duck Confit", "With orange sauce", new BigDecimal("22.50"), MenuItemType.MAIN_COURSE, futureDinnerMenu));
+            futureDinnerItems.add(new MenuItem("Vegetable Curry", "Aromatic with basmati rice", new BigDecimal("15.95"), MenuItemType.MAIN_COURSE, futureDinnerMenu));
+            futureDinnerItems.add(new MenuItem("Cheesecake", "New York style", new BigDecimal("7.50"), MenuItemType.DESSERT, futureDinnerMenu));
+        } else { // Remainder 2
+            futureDinnerItems.add(new MenuItem("Tuna Tartare", "With avocado and ponzu", new BigDecimal("12.95"), MenuItemType.APPETIZER, futureDinnerMenu));
+            futureDinnerItems.add(new MenuItem("Lamb Chops", "With mint sauce", new BigDecimal("26.50"), MenuItemType.MAIN_COURSE, futureDinnerMenu));
+            futureDinnerItems.add(new MenuItem("Eggplant Parmesan", "Baked with marinara", new BigDecimal("14.95"), MenuItemType.MAIN_COURSE, futureDinnerMenu));
+            futureDinnerItems.add(new MenuItem("Crème Brûlée", "With caramelized sugar", new BigDecimal("6.95"), MenuItemType.DESSERT, futureDinnerMenu));
+        }
+        
+        return futureDinnerItems;
     }
     
     private void createSampleReservations(List<Restaurant> restaurants, ReservationRepository reservationRepository) {

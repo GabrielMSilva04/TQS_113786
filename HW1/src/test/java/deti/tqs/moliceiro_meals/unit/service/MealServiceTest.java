@@ -1,5 +1,6 @@
-package deti.tqs.moliceiro_meals.service;
+package deti.tqs.moliceiro_meals.unit.service;
 
+import deti.tqs.moliceiro_meals.service.MealService;
 import deti.tqs.moliceiro_meals.model.Meal;
 import deti.tqs.moliceiro_meals.model.Restaurant;
 import deti.tqs.moliceiro_meals.repository.MealRepository;

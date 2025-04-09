@@ -1,5 +1,6 @@
-package deti.tqs.moliceiro_meals.service;
+package deti.tqs.moliceiro_meals.unit.service;
 
+import deti.tqs.moliceiro_meals.service.ReservationService;
 import deti.tqs.moliceiro_meals.model.Reservation;
 import deti.tqs.moliceiro_meals.model.Restaurant;
 import deti.tqs.moliceiro_meals.repository.ReservationRepository;
@@ -23,9 +24,7 @@ class ReservationServiceTest {
 
     @BeforeEach
     void setUp() {
-        // Mock the ReservationRepository
         reservationRepository = Mockito.mock(ReservationRepository.class);
-        // Mock the RestaurantRepository
         restaurantRepository = Mockito.mock(RestaurantRepository.class);
         // Inject the mocks into the ReservationService
         reservationService = new ReservationService(reservationRepository, restaurantRepository);

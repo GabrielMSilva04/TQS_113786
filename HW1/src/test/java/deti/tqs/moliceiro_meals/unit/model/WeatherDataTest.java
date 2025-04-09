@@ -1,5 +1,6 @@
-package deti.tqs.moliceiro_meals.model;
+package deti.tqs.moliceiro_meals.unit.model;
 
+import deti.tqs.moliceiro_meals.model.WeatherData;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
