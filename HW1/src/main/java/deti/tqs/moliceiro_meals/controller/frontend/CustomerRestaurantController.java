@@ -42,11 +42,9 @@ public class CustomerRestaurantController {
         try {
             List<Restaurant> restaurants = restaurantService.getAllRestaurants();
             
-            // Create maps for restaurant data instead of adding attributes to Restaurant
             Map<Long, Boolean> hasMenuToday = new HashMap<>();
             Map<Long, List<Menu>> upcomingMenus = new HashMap<>();
             
-            // Populate the maps
             LocalDate today = LocalDate.now();
             for (Restaurant restaurant : restaurants) {
                 Long id = restaurant.getId();
@@ -76,7 +74,6 @@ public class CustomerRestaurantController {
             
             return "pages/customer/restaurants";
         } catch (Exception e) {
-            // Log the exception
             e.printStackTrace();
             model.addAttribute("errorMessage", "Could not load restaurants: " + e.getMessage());
             return "pages/customer/restaurants"; // Return the same view, but with error message
@@ -94,7 +91,6 @@ public class CustomerRestaurantController {
                 return "redirect:/customer/restaurants";
             }
             
-            // Add restaurant to model
             model.addAttribute("restaurant", restaurant);
             
             // Get today's menus
@@ -106,7 +102,7 @@ public class CustomerRestaurantController {
                     todaysMenus.add(todayMenu);
                 }
             } catch (Exception e) {
-                // No menu found for today, that's okay
+
             }
             model.addAttribute("todaysMenus", todaysMenus);
             
@@ -118,11 +114,10 @@ public class CustomerRestaurantController {
                     .filter(menu -> !menu.getDate().isEqual(today))
                     .collect(Collectors.toList());
             } catch (Exception e) {
-                // No upcoming menus, that's okay
+
             }
             model.addAttribute("upcomingMenus", upcomingMenus);
             
-            // Add breadcrumbs
             List<Map<String, String>> breadcrumbs = new ArrayList<>();
             Map<String, String> restaurantsCrumb = new HashMap<>();
             restaurantsCrumb.put("label", "Restaurants");

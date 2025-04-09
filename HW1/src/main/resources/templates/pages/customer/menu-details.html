@@ -6,51 +6,128 @@
     xml:lang="en"
 >
 <head>
-    <title th:text="${menu.name} + ' - ' + ${restaurant.name}">Menu Details - Moliceiro Meals</title>
+    <title th:text="${menu.name} + ' - Moliceiro Meals'">Menu - Moliceiro Meals</title>
+    <style>
+        .menu-item:hover {
+            background-color: rgba(0,0,0,0.03);
+        }
+    </style>
 </head>
 <body>
     <section layout:fragment="content">
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold mb-2" th:text="${menu.name}">Menu Name</h1>
-            <p class="text-gray-600" th:text="${menu.description}">Description</p>
-            <p class="text-gray-700 mt-2">
-                <strong>Restaurant:</strong> 
+        <div class="mb-6">
+            <div class="flex justify-between items-center">
+                <h1 class="text-3xl font-bold" th:text="${menu.name}">Menu Name</h1>
+                <div class="badge badge-primary" th:text="${#temporals.format(menu.date, 'EEEE, MMMM d')}">Date</div>
+            </div>
+            <p class="text-lg text-gray-700 mt-2" th:text="${menu.description}">Description</p>
+            
+            <div class="mt-4">
                 <a th:href="@{/customer/restaurant/{id}(id=${restaurant.id})}" class="link link-primary">
-                    <span th:text="${restaurant.name}">Restaurant Name</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                    <span th:text="${restaurant.name}">Restaurant name</span> - <span th:text="${restaurant.location}">Location</span>
                 </a>
-            </p>
-            <p class="text-gray-700">
-                <strong>Date:</strong> 
-                <span th:text="${#temporals.format(menu.date, 'EEEE, MMMM d, yyyy')}">Monday, April 10, 2023</span>
-            </p>
+            </div>
         </div>
         
-        <!-- Menu Items Section -->
-        <div class="mb-10">
-            <h2 class="text-2xl font-bold mb-4">Menu Items</h2>
-            <div class="card bg-base-100 shadow-md">
-                <div class="card-body">
-                    <ul class="menu bg-base-100 w-full p-0">
-                        <li th:each="item : ${menu.items}" class="menu-item rounded-lg p-2 mb-2">
-                            <div class="flex justify-between items-center w-full">
-                                <div>
-                                    <h4 class="font-bold" th:text="${item.name}">Item name</h4>
-                                    <p class="text-sm text-gray-600" th:text="${item.description}">Item description</p>
-                                </div>
-                                <div class="text-right">
-                                    <p class="font-bold" th:text="${item.price + '€'}">12.99€</p>
+        <!-- Menu items -->
+        <div class="card bg-base-100 shadow-xl mb-8">
+            <div class="card-body">
+                <h2 class="card-title mb-4">Menu Items</h2>
+                
+                <!-- No menu items message -->
+                <div th:if="${menu.items == null || menu.items.isEmpty()}" class="alert alert-warning">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <span>No menu items available</span>
+                </div>
+                
+                <!-- Menu items by type -->
+                <div th:if="${menu.items != null && !menu.items.isEmpty()}">
+                    <!-- Appetizers -->
+                    <div th:if="${!#lists.isEmpty(menu.items.?[type.name() == 'APPETIZER'])}" class="mb-6">
+                        <h3 class="font-bold text-lg mb-3">Appetizers</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div th:each="item : ${menu.items.?[type.name() == 'APPETIZER']}" class="card bg-base-200">
+                                <div class="card-body p-4">
+                                    <div class="flex justify-between">
+                                        <h4 class="font-bold" th:text="${item.name}">Item name</h4>
+                                        <span class="font-bold" th:text="${item.price + '€'}">10.99€</span>
+                                    </div>
+                                    <p class="text-sm text-gray-600" th:text="${item.description}">Description</p>
                                 </div>
                             </div>
-                        </li>
-                    </ul>
+                        </div>
+                    </div>
+                    
+                    <!-- Main Courses -->
+                    <div th:if="${!#lists.isEmpty(menu.items.?[type.name() == 'MAIN_COURSE'])}" class="mb-6">
+                        <h3 class="font-bold text-lg mb-3">Main Courses</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div th:each="item : ${menu.items.?[type.name() == 'MAIN_COURSE']}" class="card bg-base-200">
+                                <div class="card-body p-4">
+                                    <div class="flex justify-between">
+                                        <h4 class="font-bold" th:text="${item.name}">Item name</h4>
+                                        <span class="font-bold" th:text="${item.price + '€'}">10.99€</span>
+                                    </div>
+                                    <p class="text-sm text-gray-600" th:text="${item.description}">Description</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Desserts -->
+                    <div th:if="${!#lists.isEmpty(menu.items.?[type.name() == 'DESSERT'])}" class="mb-6">
+                        <h3 class="font-bold text-lg mb-3">Desserts</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div th:each="item : ${menu.items.?[type.name() == 'DESSERT']}" class="card bg-base-200">
+                                <div class="card-body p-4">
+                                    <div class="flex justify-between">
+                                        <h4 class="font-bold" th:text="${item.name}">Item name</h4>
+                                        <span class="font-bold" th:text="${item.price + '€'}">10.99€</span>
+                                    </div>
+                                    <p class="text-sm text-gray-600" th:text="${item.description}">Description</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Beverages -->
+                    <div th:if="${!#lists.isEmpty(menu.items.?[type.name() == 'BEVERAGE'])}" class="mb-6">
+                        <h3 class="font-bold text-lg mb-3">Beverages</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div th:each="item : ${menu.items.?[type.name() == 'BEVERAGE']}" class="card bg-base-200">
+                                <div class="card-body p-4">
+                                    <div class="flex justify-between">
+                                        <h4 class="font-bold" th:text="${item.name}">Item name</h4>
+                                        <span class="font-bold" th:text="${item.price + '€'}">10.99€</span>
+                                    </div>
+                                    <p class="text-sm text-gray-600" th:text="${item.description}">Description</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
         
-        <!-- Reservation Button -->
-        <div class="text-center mt-8">
-            <a th:href="@{/customer/reservation/create(restaurantId=${restaurant.id}, menuId=${menu.id})}" 
-               class="btn btn-lg btn-primary">Make a Reservation for This Menu</a>
+        <!-- Action buttons -->
+        <div class="flex gap-4 mb-8">
+            <a th:href="@{/customer/reservation/create(restaurantId=${restaurant.id}, menuId=${menu.id})}" class="btn btn-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Reserve for this Menu
+            </a>
+            <a th:href="@{/customer/restaurant/{id}(id=${restaurant.id})}" class="btn btn-outline">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back to Restaurant
+            </a>
         </div>
     </section>
 </body>

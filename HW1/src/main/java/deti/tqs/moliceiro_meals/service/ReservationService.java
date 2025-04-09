@@ -1,19 +1,20 @@
 package deti.tqs.moliceiro_meals.service;
 
 import deti.tqs.moliceiro_meals.model.Reservation;
+import deti.tqs.moliceiro_meals.model.ReservationStatus;
 import deti.tqs.moliceiro_meals.model.Restaurant;
 import deti.tqs.moliceiro_meals.repository.ReservationRepository;
 import deti.tqs.moliceiro_meals.repository.RestaurantRepository;
-import deti.tqs.moliceiro_meals.model.ReservationStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-import java.util.UUID;
-import java.util.List;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class ReservationService {
@@ -28,21 +29,46 @@ public class ReservationService {
         this.restaurantRepository = restaurantRepository;
     }
 
+    @Transactional
     public Reservation createReservation(Reservation reservation, Long restaurantId) {
         logger.info("Creating reservation for restaurant ID: {}", restaurantId);
 
-        // Fetch the restaurant by ID
+        // Find the restaurant
         Restaurant restaurant = restaurantRepository.findById(restaurantId)
                 .orElseThrow(() -> new IllegalArgumentException("Restaurant with ID " + restaurantId + " not found"));
 
-        // Associate the reservation with the restaurant
+        // Set the restaurant
         reservation.setRestaurant(restaurant);
 
-        // Generate a unique token for the reservation
-        reservation.setToken(UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+        // Set default values
+        if (reservation.getStatus() == null) {
+            reservation.setStatus(ReservationStatus.PENDING);
+        }
 
-        // Save the reservation
+        // Generate a unique reservation token/code
+        if (reservation.getToken() == null) {
+            String token = generateUniqueToken();
+            reservation.setToken(token);
+        }
+
+        // Set creation time
+        reservation.setCreatedAt(LocalDateTime.now());
+
+        // Save and return
         return reservationRepository.save(reservation);
+    }
+
+    private String generateUniqueToken() {
+        // Generate a random 8-character token
+        String token;
+        boolean tokenExists;
+
+        do {
+            token = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+            tokenExists = reservationRepository.findByToken(token).isPresent();
+        } while (tokenExists);
+
+        return token;
     }
 
     public Optional<Reservation> getReservationById(Long id) {
@@ -54,11 +80,29 @@ public class ReservationService {
         return reservationRepository.findByToken(code);
     }
 
-    public void cancelReservation(String code) {
+    @Transactional
+    public Reservation cancelReservation(String code) {
+        logger.info("Attempting to cancel reservation with code: {}", code);
+        
         Reservation reservation = reservationRepository.findByToken(code)
-                .orElseThrow(() -> new IllegalArgumentException("Reservation not found"));
+                .orElseThrow(() -> {
+                    logger.error("Reservation not found with code: {}", code);
+                    return new IllegalArgumentException("Reservation not found with code: " + code);
+                });
+
+        logger.info("Found reservation, current status: {}", reservation.getStatus());
+        
+        // Only allow cancellation of pending or confirmed reservations
+        if (reservation.getStatus() != ReservationStatus.PENDING && 
+            reservation.getStatus() != ReservationStatus.CONFIRMED) {
+            logger.error("Cannot cancel reservation with status: {}", reservation.getStatus());
+            throw new IllegalStateException("Cannot cancel reservation with status: " + reservation.getStatus());
+        }
+
         reservation.setStatus(ReservationStatus.CANCELLED);
-        reservationRepository.save(reservation);
+        logger.info("Reservation status updated to CANCELLED");
+        
+        return reservationRepository.save(reservation);
     }
 
     public void deleteReservation(long id) {
@@ -122,5 +166,9 @@ public class ReservationService {
             reservation.setStatus(ReservationStatus.COMPLETED);
             reservationRepository.save(reservation);
         });
+    }
+
+    public List<Reservation> getReservationsByEmail(String email) {
+        return reservationRepository.findByCustomerEmail(email);
     }
 }

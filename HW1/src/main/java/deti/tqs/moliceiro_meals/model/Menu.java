@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 public class Menu {
@@ -18,9 +19,11 @@ public class Menu {
     
     @ManyToOne
     @JoinColumn(name = "restaurant_id")
+    @JsonIgnoreProperties({"menus", "reservations"})
     private Restaurant restaurant;
     
     @OneToMany(mappedBy = "menu", cascade = CascadeType.ALL)
+    @JsonIgnoreProperties({"menu"})
     private List<MenuItem> items = new ArrayList<>();
 
     // Constructors

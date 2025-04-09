@@ -1,5 +1,6 @@
 package deti.tqs.moliceiro_meals.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -14,7 +15,7 @@ public class Reservation {
     private String customerName;
     private String customerEmail;
     private String customerPhone;
-    private int partySize;
+    private Integer partySize;
     private LocalDateTime reservationTime;
     private String specialRequests;
     
@@ -26,7 +27,13 @@ public class Reservation {
     
     @ManyToOne
     @JoinColumn(name = "restaurant_id")
+    @JsonIgnoreProperties({"menus", "reservations"})
     private Restaurant restaurant;
+    
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "menu_id")
+    @JsonIgnoreProperties({"restaurant", "items"})
+    private Menu menu;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -49,6 +56,13 @@ public class Reservation {
         this.reservationTime = reservationTime;
         this.specialRequests = specialRequests;
         this.restaurant = restaurant;
+    }
+    
+    public Reservation(String customerName, String customerEmail, String customerPhone, 
+                      int partySize, LocalDateTime reservationTime, String specialRequests, 
+                      Restaurant restaurant, Menu menu) {
+        this(customerName, customerEmail, customerPhone, partySize, reservationTime, specialRequests, restaurant);
+        this.menu = menu;
     }
 
     // Getters and setters
@@ -84,11 +98,11 @@ public class Reservation {
         this.customerPhone = customerPhone;
     }
 
-    public int getPartySize() {
+    public Integer getPartySize() {
         return partySize;
     }
 
-    public void setPartySize(int partySize) {
+    public void setPartySize(Integer partySize) {
         this.partySize = partySize;
     }
 
@@ -138,5 +152,28 @@ public class Reservation {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+    
+    public Menu getMenu() {
+        return menu;
+    }
+
+    public void setMenu(Menu menu) {
+        this.menu = menu;
+    }
+    
+    @Override
+    public String toString() {
+        return "Reservation{" +
+                "id=" + id +
+                ", customerName='" + customerName + '\'' +
+                ", customerEmail='" + customerEmail + '\'' +
+                ", partySize=" + partySize +
+                ", reservationTime=" + reservationTime +
+                ", token='" + token + '\'' +
+                ", status=" + status +
+                ", restaurant=" + (restaurant != null ? restaurant.getName() : "null") +
+                ", menu=" + (menu != null ? menu.getName() : "null") +
+                '}';
     }
 }

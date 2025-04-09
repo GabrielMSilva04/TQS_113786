@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html 
+    xmlns:th="http://www.thymeleaf.org"
+    xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layouts/customer-layout}"
+    xml:lang="en"
+>
+<head>
+    <title>Reservation Confirmed - Moliceiro Meals</title>
+</head>
+<body>
+    <section layout:fragment="content">
+
+        <div class="max-w-3xl mx-auto">
+            <!-- Success message -->
+            <div class="alert alert-success mb-8">
+                <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Your reservation has been confirmed!</span>
+            </div>
+            
+            <!-- Reservation details card -->
+            <div class="card bg-base-100 shadow-xl mb-8">
+                <div class="card-body">
+                    <h1 class="card-title text-2xl mb-4">Reservation Confirmation</h1>
+                    
+                    <div class="bg-base-200 p-4 rounded-lg text-center mb-6">
+                        <h2 class="text-xl font-bold mb-1">Confirmation Code</h2>
+                        <p class="text-3xl font-mono bg-base-100 inline-block px-4 py-2 rounded-lg" th:text="${reservation.token}">ABC123</p>
+                        <p class="text-sm mt-2">Please save this code. You'll need it to manage your reservation.</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="font-bold text-lg mb-3">Restaurant Details</h3>
+                            <p class="font-bold" th:text="${reservation.restaurant.name}">Restaurant Name</p>
+                            <p th:text="${reservation.restaurant.location}">Location</p>
+                            <p th:if="${reservation.restaurant.contactInfo != null}" th:text="${reservation.restaurant.contactInfo}">Contact</p>
+                        </div>
+                        
+                        <div>
+                            <h3 class="font-bold text-lg mb-3">Reservation Details</h3>
+                            <p><strong>Date & Time:</strong> <span th:text="${#temporals.format(reservation.reservationTime, 'EEEE, MMMM d, yyyy - HH:mm')}">Monday, April 10, 2023 - 19:30</span></p>
+                            <p><strong>Party Size:</strong> <span th:text="${reservation.partySize} + ' people'">4 people</span></p>
+                            <p><strong>Status:</strong> <span class="badge badge-success" th:text="${reservation.status}">CONFIRMED</span></p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6">
+                        <h3 class="font-bold text-lg mb-3">Guest Information</h3>
+                        <p><strong>Name:</strong> <span th:text="${reservation.customerName}">John Doe</span></p>
+                        <p><strong>Email:</strong> <span th:text="${reservation.customerEmail}">john@example.com</span></p>
+                        <p><strong>Phone:</strong> <span th:text="${reservation.customerPhone}">123-456-7890</span></p>
+                    </div>
+                    
+                    <div class="mt-6" th:if="${reservation.specialRequests != null && !reservation.specialRequests.isEmpty()}">
+                        <h3 class="font-bold text-lg mb-3">Special Requests</h3>
+                        <p th:text="${reservation.specialRequests}">Window table, celebrating anniversary</p>
+                    </div>
+                    
+                    <!-- If a menu was selected, show menu details -->
+                    <div class="mt-6" th:if="${selectedMenu != null}">
+                        <h3 class="font-bold text-lg mb-3">Selected Menu</h3>
+                        <p><strong>Menu:</strong> <span th:text="${selectedMenu.name}">Special Dinner</span></p>
+                        <p th:if="${selectedMenu.description != null}" th:text="${selectedMenu.description}">A delightful selection of our chef's specialties</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action buttons -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+                <a th:href="@{/customer/reservation/{code}(code=${reservation.token})}" class="btn btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    View Reservation
+                </a>
+                <a href="/customer" class="btn btn-outline">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7m-7-7v14" />
+                    </svg>
+                    Return to Home
+                </a>
+            </div>
+        </div>
+    </section>
+</body>
+</html>

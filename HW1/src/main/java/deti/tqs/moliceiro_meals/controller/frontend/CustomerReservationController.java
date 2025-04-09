@@ -2,14 +2,24 @@ package deti.tqs.moliceiro_meals.controller.frontend;
 
 import deti.tqs.moliceiro_meals.model.Menu;
 import deti.tqs.moliceiro_meals.model.Reservation;
+import deti.tqs.moliceiro_meals.model.ReservationStatus;
+import deti.tqs.moliceiro_meals.model.Restaurant;
 import deti.tqs.moliceiro_meals.service.MenuService;
 import deti.tqs.moliceiro_meals.service.ReservationService;
 import deti.tqs.moliceiro_meals.service.RestaurantService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.beans.PropertyEditorSupport;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -20,6 +30,8 @@ import java.util.Optional;
 @RequestMapping("/customer/reservation")
 public class CustomerReservationController {
 
+    private static final Logger logger = LoggerFactory.getLogger(CustomerReservationController.class);
+    
     private final ReservationService reservationService;
     private final RestaurantService restaurantService;
     private final MenuService menuService;
@@ -33,96 +45,187 @@ public class CustomerReservationController {
         this.menuService = menuService;
     }
 
+    @InitBinder
+    public void initBinder(WebDataBinder binder) {
+        // This prevents Spring from trying to directly convert strings to LocalDateTime
+        binder.registerCustomEditor(LocalDateTime.class, new PropertyEditorSupport() {
+            @Override
+            public void setAsText(String text) throws IllegalArgumentException {
+                setValue(null);
+            }
+        });
+    }
+
     @GetMapping("/create")
     public String createReservation(
             @RequestParam(required = false) Long restaurantId,
             @RequestParam(required = false) Long menuId,
             Model model) {
         
-        // Add breadcrumbs
+        logger.info("Create reservation form requested with restaurantId={}, menuId={}", restaurantId, menuId);
+        
+        Reservation reservation = new Reservation();
+        model.addAttribute("reservation", reservation);
+        
+        model.addAttribute("restaurants", restaurantService.getAllRestaurants());
+        
         List<Map<String, String>> breadcrumbs = new ArrayList<>();
-        breadcrumbs.add(Map.of("label", "Reservation", "url", null));
+        
+        Map<String, String> reservationCrumb = new HashMap<>();
+        reservationCrumb.put("label", "Make Reservation");
+        reservationCrumb.put("url", null);
+        
+        breadcrumbs.add(reservationCrumb);
         
         if (restaurantId != null) {
-            var restaurant = restaurantService.getRestaurantById(restaurantId).orElse(null);
-            model.addAttribute("restaurant", restaurant);
-            
-            if (restaurant != null) {
-                breadcrumbs.add(Map.of("label", restaurant.getName(), 
-                                     "url", "/customer/restaurant/" + restaurantId));
+            logger.info("Fetching restaurant with ID: {}", restaurantId);
+            var restaurantOpt = restaurantService.getRestaurantById(restaurantId);
+            if (restaurantOpt.isPresent()) {
+                Restaurant restaurant = restaurantOpt.get();
+                model.addAttribute("restaurant", restaurant);
+                
+                Map<String, String> restaurantCrumb = new HashMap<>();
+                restaurantCrumb.put("label", restaurant.getName());
+                restaurantCrumb.put("url", "/customer/restaurant/" + restaurantId);
+                breadcrumbs.add(1, restaurantCrumb);
                 
                 // If a menu was selected, add it to the model
                 if (menuId != null) {
-                    // Get actual menu instead of mock
+                    logger.info("Fetching menu with ID: {}", menuId);
                     Optional<Menu> selectedMenuOpt = menuService.getMenuById(menuId);
                     if (selectedMenuOpt.isPresent()) {
                         Menu selectedMenu = selectedMenuOpt.get();
                         model.addAttribute("selectedMenu", selectedMenu);
-                        model.addAttribute("menuName", selectedMenu.getName());
-                        breadcrumbs.add(Map.of("label", "Menu: " + selectedMenu.getName(), "url", null));
+                        
+                        Map<String, String> menuCrumb = new HashMap<>();
+                        menuCrumb.put("label", "Menu: " + selectedMenu.getName());
+                        menuCrumb.put("url", null);
+                        breadcrumbs.add(2, menuCrumb);
+                    } else {
+                        logger.warn("Menu with ID {} not found", menuId);
                     }
                 }
+            } else {
+                logger.warn("Restaurant with ID {} not found", restaurantId);
+                model.addAttribute("errorMessage", "Restaurant not found");
             }
         }
         
-        model.addAttribute("restaurants", restaurantService.getAllRestaurants());
-        model.addAttribute("reservation", new Reservation());
         model.addAttribute("breadcrumbs", breadcrumbs);
         model.addAttribute("pageTitle", "Make a Reservation - Moliceiro Meals");
+        
+        logger.info("Rendering create-reservation view");
         return "pages/customer/create-reservation";
     }
 
     @PostMapping("/create")
     public String submitReservation(
-            @ModelAttribute Reservation reservation, 
+            @ModelAttribute("reservationForm") Reservation reservation,
             @RequestParam Long restaurantId,
-            @RequestParam(required = false) Long menuId, 
+            @RequestParam(required = false) Long menuId,
+            @RequestParam(required = false) String reservationDate,
+            @RequestParam(required = false) String reservationTime,
             Model model) {
         
         try {
-            reservation = reservationService.createReservation(reservation, restaurantId);
+            logger.info("Submitting reservation with date: {} and time: {}", reservationDate, reservationTime);
             
-            // Add breadcrumbs
-            List<Map<String, String>> breadcrumbs = new ArrayList<>();
-            breadcrumbs.add(Map.of("label", "Reservations", "url", "/customer/reservations"));
-            breadcrumbs.add(Map.of("label", "Confirmation", "url", null));
+            // Validate required fields
+            if (reservation.getCustomerName() == null || reservation.getCustomerName().isEmpty()) {
+                throw new IllegalArgumentException("Customer name is required");
+            }
+            if (reservation.getCustomerEmail() == null || reservation.getCustomerEmail().isEmpty()) {
+                throw new IllegalArgumentException("Email is required");
+            }
+            if (reservation.getCustomerPhone() == null || reservation.getCustomerPhone().isEmpty()) {
+                throw new IllegalArgumentException("Phone number is required");
+            }
+            if (reservation.getPartySize() == null) {
+                throw new IllegalArgumentException("Party size is required");
+            }
             
-            model.addAttribute("reservation", reservation);
-            model.addAttribute("breadcrumbs", breadcrumbs);
+            // Process date and time
+            if (reservationDate != null && !reservationDate.isEmpty() && 
+                reservationTime != null && !reservationTime.isEmpty()) {
+                
+                try {
+                    // Parse the date (expected format yyyy-MM-dd)
+                    LocalDate date = LocalDate.parse(reservationDate);
+                    
+                    // Parse the time (handling different possible formats)
+                    LocalTime time = LocalTime.parse(reservationTime);
+                    
+                    // Combine into LocalDateTime
+                    LocalDateTime dateTime = LocalDateTime.of(date, time);
+                    reservation.setReservationTime(dateTime);
+                    
+                    logger.info("Successfully set reservation time to: {}", dateTime);
+                } catch (DateTimeParseException e) {
+                    logger.error("Error parsing date/time: {}", e.getMessage());
+                    throw new IllegalArgumentException("Please enter a valid date (YYYY-MM-DD) and time (HH:MM)");
+                }
+            } else {
+                throw new IllegalArgumentException("Reservation date and time are required");
+            }
+            
+            // Get restaurant
+            Restaurant restaurant = restaurantService.getRestaurantById(restaurantId)
+                    .orElseThrow(() -> new IllegalArgumentException("Restaurant not found"));
+            
+            // Associate menu if provided
+            if (menuId != null) {
+                menuService.getMenuById(menuId).ifPresent(menu -> {
+                    reservation.setMenu(menu);
+                    logger.info("Associated menu: {} with the reservation", menu.getName());
+                });
+            }
+            
+            // Set additional fields
+            reservation.setRestaurant(restaurant);
+            reservation.setStatus(ReservationStatus.PENDING);
+            
+            // Create the reservation
+            Reservation createdReservation = reservationService.createReservation(reservation, restaurantId);
+            
+            // Add information for the confirmation page
+            model.addAttribute("reservation", createdReservation);
+            model.addAttribute("restaurant", restaurant);
             model.addAttribute("pageTitle", "Reservation Confirmed - Moliceiro Meals");
             
-            // If menu was selected, add it to the confirmation page
-            if (menuId != null) {
-                Optional<Menu> menuOpt = menuService.getMenuById(menuId);
-                if (menuOpt.isPresent()) {
-                    model.addAttribute("selectedMenu", menuOpt.get());
-                } else {
-                    // Fallback to mock data if menu not found
-                    Map<String, Object> mockMenu = getMockMenuById(menuId);
-                    model.addAttribute("selectedMenu", mockMenu);
-                }
-            }
+            List<Map<String, String>> breadcrumbs = new ArrayList<>();
+            
+            Map<String, String> reservationsCrumb = new HashMap<>();
+            reservationsCrumb.put("label", "Reservations");
+            reservationsCrumb.put("url", "/customer/reservation/s");
+            breadcrumbs.add(reservationsCrumb);
+            
+            Map<String, String> confirmationCrumb = new HashMap<>();
+            confirmationCrumb.put("label", "Confirmation");
+            confirmationCrumb.put("url", null);
+            breadcrumbs.add(confirmationCrumb);
+            
+            model.addAttribute("breadcrumbs", breadcrumbs);
             
             return "pages/customer/reservation-confirmation";
         } catch (Exception e) {
+            logger.error("Error creating reservation: {}", e.getMessage(), e);
             model.addAttribute("errorMessage", e.getMessage());
             model.addAttribute("restaurants", restaurantService.getAllRestaurants());
-            model.addAttribute("restaurant", restaurantService.getRestaurantById(restaurantId).orElse(null));
+            
+            // Try to re-add the restaurant to the model
+            restaurantService.getRestaurantById(restaurantId).ifPresent(restaurant -> 
+                model.addAttribute("restaurant", restaurant));
             
             // Re-add menu if it was selected
             if (menuId != null) {
-                Optional<Menu> menuOpt = menuService.getMenuById(menuId);
-                if (menuOpt.isPresent()) {
-                    Menu selectedMenu = menuOpt.get();
-                    model.addAttribute("selectedMenu", selectedMenu);
-                    model.addAttribute("menuName", selectedMenu.getName());
-                } else {
-                    // Fallback to mock data if menu not found
-                    Map<String, Object> mockMenu = getMockMenuById(menuId);
-                    model.addAttribute("selectedMenu", mockMenu);
-                    model.addAttribute("menuName", mockMenu.get("name"));
-                }
+                menuService.getMenuById(menuId).ifPresent(menu -> 
+                    model.addAttribute("selectedMenu", menu));
             }
+            
+            // Re-add the form data
+            model.addAttribute("reservationForm", reservation);
+            model.addAttribute("reservationDate", reservationDate);
+            model.addAttribute("reservationTime", reservationTime);
             
             return "pages/customer/create-reservation";
         }
@@ -130,12 +233,20 @@ public class CustomerReservationController {
 
     @GetMapping("s")
     public String viewReservations(Model model) {
+        logger.info("Viewing customer reservations page");
+        
         // Add breadcrumbs
         List<Map<String, String>> breadcrumbs = new ArrayList<>();
-        breadcrumbs.add(Map.of("label", "My Reservations", "url", null));
+        
+        Map<String, String> reservationsCrumb = new HashMap<>();
+        reservationsCrumb.put("label", "My Reservations");
+        reservationsCrumb.put("url", null);
+        
+        breadcrumbs.add(reservationsCrumb);
         
         model.addAttribute("breadcrumbs", breadcrumbs);
         model.addAttribute("pageTitle", "My Reservations - Moliceiro Meals");
+        
         return "pages/customer/view-reservations";
     }
 
@@ -161,39 +272,47 @@ public class CustomerReservationController {
     }
 
     @PostMapping("/cancel/{code}")
-    public String cancelReservation(@PathVariable String code, Model model) {
+    public String cancelReservation(@PathVariable String code, RedirectAttributes redirectAttributes) {
         try {
+            logger.info("Cancelling reservation with code: {}", code);
             reservationService.cancelReservation(code);
-            model.addAttribute("successMessage", "Reservation cancelled successfully");
-            return "redirect:/customer/reservations";
+            redirectAttributes.addFlashAttribute("successMessage", "Reservation cancelled successfully");
+            // Redirect to the view reservations page
+            return "redirect:/customer/reservation/s";
         } catch (Exception e) {
-            model.addAttribute("errorMessage", e.getMessage());
+            logger.error("Error cancelling reservation: {}", e.getMessage(), e);
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
             return "redirect:/customer/reservation/" + code;
         }
     }
-    
-    /**
-     * Mock method to get a menu by ID
-     * Used as a fallback when the real menu can't be found
-     */
-    private Map<String, Object> getMockMenuById(Long menuId) {
-        Map<String, Object> menu = new HashMap<>();
-        menu.put("id", menuId);
-        menu.put("name", "Special Menu #" + menuId);
-        menu.put("description", "Delicious menu with a variety of options");
-        menu.put("date", LocalDate.now());
+
+    @GetMapping("/find-by-email")
+    public String findReservationsByEmail(@RequestParam String email, Model model) {
+        logger.info("Finding reservations for email: {}", email);
         
-        List<Map<String, Object>> items = new ArrayList<>();
-        for (int j = 0; j < 3; j++) {
-            Map<String, Object> item = new HashMap<>();
-            item.put("id", 1000L + j);
-            item.put("name", "Item " + (j + 1));
-            item.put("description", "Delicious food item");
-            item.put("price", 10.99 + j);
-            items.add(item);
+        List<Reservation> reservations = reservationService.getReservationsByEmail(email);
+        
+        List<Map<String, String>> breadcrumbs = new ArrayList<>();
+        breadcrumbs.add(Map.of("label", "My Reservations", "url", null));
+        
+        model.addAttribute("breadcrumbs", breadcrumbs);
+        model.addAttribute("reservations", reservations);
+        model.addAttribute("pageTitle", "My Reservations - Moliceiro Meals");
+        
+        if (reservations.isEmpty()) {
+            model.addAttribute("infoMessage", "No reservations found for email: " + email);
         }
-        menu.put("items", items);
         
-        return menu;
+        return "pages/customer/view-reservations";
+    }
+
+    @GetMapping("")
+    public String checkReservation(@RequestParam(required = false) String code, Model model) {
+        if (code != null && !code.trim().isEmpty()) {
+            return "redirect:/customer/reservation/" + code;
+        }
+        
+        // If no code provided, just show the view reservations page
+        return viewReservations(model);
     }
 }

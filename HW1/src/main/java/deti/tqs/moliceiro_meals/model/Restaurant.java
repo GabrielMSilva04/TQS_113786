@@ -2,6 +2,7 @@ package deti.tqs.moliceiro_meals.model;
 
 import jakarta.persistence.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
@@ -20,13 +21,14 @@ public class Restaurant {
     private String contactInfo;
     
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL)
+    @JsonIgnoreProperties({"restaurant"})
     private List<Menu> menus = new ArrayList<>();
     
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL)
-    @JsonIgnore
+    @JsonIgnoreProperties({"restaurant"})
     private List<Reservation> reservations = new ArrayList<>();
 
-    @Transient // This ensures the map won't be persisted to the database
+    @Transient
     private Map<String, Object> attributes = new HashMap<>();
 
     // Constructors

@@ -63,4 +63,16 @@ public class MenuService {
     public Optional<Menu> getMenuById(Long menuId) {
         return menuRepository.findById(menuId);
     }
+
+    public List<Menu> getMenusByRestaurantAndDate(Long id, LocalDate today) {
+        try {
+            List<Menu> menus = menuRepository.findByRestaurantIdAndDate(id, today);
+            if (menus == null || menus.isEmpty()) {
+                return new ArrayList<>();
+            }
+            return menus;
+        } catch (Exception e) {
+            return new ArrayList<>();
+        }
+    }
 }

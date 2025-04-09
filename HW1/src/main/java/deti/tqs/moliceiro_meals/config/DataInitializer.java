@@ -100,41 +100,153 @@ public class DataInitializer {
         
         LocalDate today = LocalDate.now();
         
-        // Create today's menu
-        Menu todayMenu = new Menu(
-            "Daily Special Menu", 
-            "Our chef's selection for today", 
+        // Create today's lunch menu
+        Menu todayLunchMenu = new Menu(
+            "Daily Lunch Special", 
+            "Our chef's lunch selection featuring fresh and light meals", 
             today, 
             restaurant
         );
-        menuRepository.save(todayMenu);
+        menuRepository.save(todayLunchMenu);
         
-        // Add menu items to today's menu
-        List<MenuItem> todayItems = new ArrayList<>();
-        todayItems.add(new MenuItem("Grilled Sardines", "Fresh sardines with olive oil and herbs", new BigDecimal("12.50"), MenuItemType.MAIN_COURSE, todayMenu));
-        todayItems.add(new MenuItem("Octopus Rice", "Slow-cooked octopus with rice", new BigDecimal("14.75"), MenuItemType.MAIN_COURSE, todayMenu));
-        todayItems.add(new MenuItem("Cheese Platter", "Selection of regional cheeses", new BigDecimal("8.95"), MenuItemType.APPETIZER, todayMenu));
-        todayItems.add(new MenuItem("Crème Brûlée", "Traditional French dessert", new BigDecimal("5.50"), MenuItemType.DESSERT, todayMenu));
-        menuItemRepository.saveAll(todayItems);
+        // Create today's dinner menu
+        Menu todayDinnerMenu = new Menu(
+            "Evening Special Menu", 
+            "Elegant dinner options prepared with seasonal ingredients", 
+            today, 
+            restaurant
+        );
+        menuRepository.save(todayDinnerMenu);
         
-        // Create menus for upcoming days
+        // Add menu items to today's lunch menu - varied by restaurant
+        List<MenuItem> todayLunchItems = new ArrayList<>();
+        
+        if (restaurant.getName().equals("O Bairro")) {
+            // Traditional Portuguese lunch
+            todayLunchItems.add(new MenuItem("Caldo Verde", "Traditional Portuguese kale soup with chorizo", new BigDecimal("4.50"), MenuItemType.APPETIZER, todayLunchMenu));
+            todayLunchItems.add(new MenuItem("Bacalhau à Gomes de Sá", "Codfish with potatoes, eggs, and olives", new BigDecimal("12.75"), MenuItemType.MAIN_COURSE, todayLunchMenu));
+            todayLunchItems.add(new MenuItem("Roasted Chicken", "Farm chicken with piri-piri sauce", new BigDecimal("9.95"), MenuItemType.MAIN_COURSE, todayLunchMenu));
+            todayLunchItems.add(new MenuItem("Arroz Doce", "Sweet rice pudding with cinnamon", new BigDecimal("3.95"), MenuItemType.DESSERT, todayLunchMenu));
+            todayLunchItems.add(new MenuItem("Fresh Orange Juice", "Squeezed daily", new BigDecimal("2.75"), MenuItemType.BEVERAGE, todayLunchMenu));
+        } else if (restaurant.getName().equals("Salpoente")) {
+            // Upscale lunch
+            todayLunchItems.add(new MenuItem("Oysters", "Fresh local oysters with lemon", new BigDecimal("14.50"), MenuItemType.APPETIZER, todayLunchMenu));
+            todayLunchItems.add(new MenuItem("Lobster Bisque", "Creamy soup with lobster pieces", new BigDecimal("9.95"), MenuItemType.APPETIZER, todayLunchMenu));
+            todayLunchItems.add(new MenuItem("Sea Bass Fillet", "Grilled with herbs and olive oil", new BigDecimal("18.50"), MenuItemType.MAIN_COURSE, todayLunchMenu));
+            todayLunchItems.add(new MenuItem("Chocolate Mousse", "Dark chocolate with sea salt", new BigDecimal("7.95"), MenuItemType.DESSERT, todayLunchMenu));
+            todayLunchItems.add(new MenuItem("White Wine Sangria", "Made with local white wine", new BigDecimal("6.50"), MenuItemType.BEVERAGE, todayLunchMenu));
+        } else if (restaurant.getName().equals("Ramona")) {
+            // Tapas for lunch
+            todayLunchItems.add(new MenuItem("Patatas Bravas", "Fried potatoes with spicy sauce", new BigDecimal("4.95"), MenuItemType.APPETIZER, todayLunchMenu));
+            todayLunchItems.add(new MenuItem("Gambas al Ajillo", "Garlic shrimp", new BigDecimal("9.50"), MenuItemType.APPETIZER, todayLunchMenu));
+            todayLunchItems.add(new MenuItem("Chorizo in Wine", "Sautéed chorizo in red wine", new BigDecimal("7.95"), MenuItemType.MAIN_COURSE, todayLunchMenu));
+            todayLunchItems.add(new MenuItem("Churros", "Served with chocolate sauce", new BigDecimal("5.50"), MenuItemType.DESSERT, todayLunchMenu));
+            todayLunchItems.add(new MenuItem("Red Sangria", "House special", new BigDecimal("5.95"), MenuItemType.BEVERAGE, todayLunchMenu));
+        } else { // Cervejaria Rossio
+            // Beer house lunch
+            todayLunchItems.add(new MenuItem("Clams à Bulhão Pato", "Clams cooked with garlic and cilantro", new BigDecimal("11.95"), MenuItemType.APPETIZER, todayLunchMenu));
+            todayLunchItems.add(new MenuItem("Shrimp Skewers", "Grilled with lemon and herbs", new BigDecimal("9.50"), MenuItemType.APPETIZER, todayLunchMenu));
+            todayLunchItems.add(new MenuItem("Fish and Chips", "Cod with homemade fries", new BigDecimal("10.95"), MenuItemType.MAIN_COURSE, todayLunchMenu));
+            todayLunchItems.add(new MenuItem("Ice Cream", "Assorted flavors", new BigDecimal("4.50"), MenuItemType.DESSERT, todayLunchMenu));
+            todayLunchItems.add(new MenuItem("Craft Beer", "Selection of local brews", new BigDecimal("4.95"), MenuItemType.BEVERAGE, todayLunchMenu));
+        }
+        
+        menuItemRepository.saveAll(todayLunchItems);
+        
+        // Add menu items to today's dinner menu - varied by restaurant
+        List<MenuItem> todayDinnerItems = new ArrayList<>();
+        
+        if (restaurant.getName().equals("O Bairro")) {
+            // Traditional Portuguese dinner
+            todayDinnerItems.add(new MenuItem("Cheese and Charcuterie Board", "Selection of regional cheeses and cured meats", new BigDecimal("13.95"), MenuItemType.APPETIZER, todayDinnerMenu));
+            todayDinnerItems.add(new MenuItem("Grilled Sardines", "Fresh sardines with olive oil and herbs", new BigDecimal("12.50"), MenuItemType.MAIN_COURSE, todayDinnerMenu));
+            todayDinnerItems.add(new MenuItem("Octopus Rice", "Slow-cooked octopus with rice", new BigDecimal("14.75"), MenuItemType.MAIN_COURSE, todayDinnerMenu));
+            todayDinnerItems.add(new MenuItem("Crème Brûlée", "Traditional French dessert", new BigDecimal("5.50"), MenuItemType.DESSERT, todayDinnerMenu));
+            todayDinnerItems.add(new MenuItem("Port Wine", "Aged tawny", new BigDecimal("7.50"), MenuItemType.BEVERAGE, todayDinnerMenu));
+        } else if (restaurant.getName().equals("Salpoente")) {
+            // Upscale dinner
+            todayDinnerItems.add(new MenuItem("Foie Gras", "With fig jam and brioche", new BigDecimal("16.95"), MenuItemType.APPETIZER, todayDinnerMenu));
+            todayDinnerItems.add(new MenuItem("Truffle Risotto", "Arborio rice with black truffle", new BigDecimal("19.50"), MenuItemType.MAIN_COURSE, todayDinnerMenu));
+            todayDinnerItems.add(new MenuItem("Wagyu Beef", "Premium beef with roasted vegetables", new BigDecimal("32.95"), MenuItemType.MAIN_COURSE, todayDinnerMenu));
+            todayDinnerItems.add(new MenuItem("Crème Caramel", "Traditional custard with caramel", new BigDecimal("8.50"), MenuItemType.DESSERT, todayDinnerMenu));
+            todayDinnerItems.add(new MenuItem("Espresso Martini", "Coffee-based cocktail", new BigDecimal("9.95"), MenuItemType.BEVERAGE, todayDinnerMenu));
+        } else if (restaurant.getName().equals("Ramona")) {
+            // Evening tapas
+            todayDinnerItems.add(new MenuItem("Iberico Ham", "Premium cured ham", new BigDecimal("15.95"), MenuItemType.APPETIZER, todayDinnerMenu));
+            todayDinnerItems.add(new MenuItem("Stuffed Peppers", "Peppers filled with goat cheese", new BigDecimal("8.50"), MenuItemType.APPETIZER, todayDinnerMenu));
+            todayDinnerItems.add(new MenuItem("Seafood Paella", "Traditional Spanish rice dish", new BigDecimal("22.95"), MenuItemType.MAIN_COURSE, todayDinnerMenu));
+            todayDinnerItems.add(new MenuItem("Crema Catalana", "Citrus-infused custard", new BigDecimal("6.50"), MenuItemType.DESSERT, todayDinnerMenu));
+            todayDinnerItems.add(new MenuItem("Rioja Wine", "Selected Spanish red", new BigDecimal("7.95"), MenuItemType.BEVERAGE, todayDinnerMenu));
+        } else { // Cervejaria Rossio
+            // Beer house dinner
+            todayDinnerItems.add(new MenuItem("Seafood Platter", "Assortment of fresh seafood", new BigDecimal("24.95"), MenuItemType.APPETIZER, todayDinnerMenu));
+            todayDinnerItems.add(new MenuItem("Grilled Tiger Prawns", "With garlic butter", new BigDecimal("18.95"), MenuItemType.MAIN_COURSE, todayDinnerMenu));
+            todayDinnerItems.add(new MenuItem("Mixed Grill", "Selection of meats with fries", new BigDecimal("19.50"), MenuItemType.MAIN_COURSE, todayDinnerMenu));
+            todayDinnerItems.add(new MenuItem("Chocolate Cake", "Rich with vanilla ice cream", new BigDecimal("6.95"), MenuItemType.DESSERT, todayDinnerMenu));
+            todayDinnerItems.add(new MenuItem("Premium Beer Flight", "Tasting of 4 craft beers", new BigDecimal("8.95"), MenuItemType.BEVERAGE, todayDinnerMenu));
+        }
+        
+        menuItemRepository.saveAll(todayDinnerItems);
+        
+        // Create menus for upcoming days (one lunch and one dinner menu per day)
         for (int i = 1; i <= 7; i++) {
             LocalDate futureDate = today.plusDays(i);
-            Menu futureMenu = new Menu(
-                "Menu for " + futureDate.getDayOfWeek().toString(), 
-                "Special menu for " + futureDate.getDayOfWeek().toString().toLowerCase(), 
+            String dayName = futureDate.getDayOfWeek().toString().toLowerCase();
+            
+            // Lunch menu for future days
+            Menu futureLunchMenu = new Menu(
+                dayName.substring(0, 1).toUpperCase() + dayName.substring(1) + " Lunch Special", 
+                "Our chef's selection for " + dayName + " lunch", 
                 futureDate, 
                 restaurant
             );
-            menuRepository.save(futureMenu);
+            menuRepository.save(futureLunchMenu);
             
-            // Add menu items for future menus
-            List<MenuItem> futureItems = new ArrayList<>();
-            futureItems.add(new MenuItem("Bacalhau à Brás", "Shredded cod with onions and fries", new BigDecimal("13.95"), MenuItemType.MAIN_COURSE, futureMenu));
-            futureItems.add(new MenuItem("Mushroom Risotto", "Creamy rice with wild mushrooms", new BigDecimal("11.50"), MenuItemType.MAIN_COURSE, futureMenu));
-            futureItems.add(new MenuItem("Green Salad", "Fresh greens with vinaigrette", new BigDecimal("4.95"), MenuItemType.APPETIZER, futureMenu));
-            futureItems.add(new MenuItem("Pastel de Nata", "Traditional Portuguese custard tart", new BigDecimal("2.50"), MenuItemType.DESSERT, futureMenu));
-            menuItemRepository.saveAll(futureItems);
+            // Dinner menu for future days
+            Menu futureDinnerMenu = new Menu(
+                dayName.substring(0, 1).toUpperCase() + dayName.substring(1) + " Dinner Delight", 
+                "Evening specialties for " + dayName, 
+                futureDate, 
+                restaurant
+            );
+            menuRepository.save(futureDinnerMenu);
+            
+            // Add different items to future lunch menu
+            List<MenuItem> futureLunchItems = new ArrayList<>();
+            
+            if (i % 2 == 0) { // Even days
+                futureLunchItems.add(new MenuItem("Tomato Soup", "Fresh tomato with basil", new BigDecimal("4.95"), MenuItemType.APPETIZER, futureLunchMenu));
+                futureLunchItems.add(new MenuItem("Grilled Chicken Salad", "Mixed greens with grilled chicken", new BigDecimal("9.95"), MenuItemType.MAIN_COURSE, futureLunchMenu));
+                futureLunchItems.add(new MenuItem("Vegetable Quiche", "Seasonal vegetables in pastry", new BigDecimal("8.50"), MenuItemType.MAIN_COURSE, futureLunchMenu));
+                futureLunchItems.add(new MenuItem("Fruit Salad", "Fresh seasonal fruits", new BigDecimal("4.50"), MenuItemType.DESSERT, futureLunchMenu));
+            } else { // Odd days
+                futureLunchItems.add(new MenuItem("Gazpacho", "Cold vegetable soup", new BigDecimal("5.50"), MenuItemType.APPETIZER, futureLunchMenu));
+                futureLunchItems.add(new MenuItem("Fish of the Day", "Grilled with lemon butter", new BigDecimal("13.95"), MenuItemType.MAIN_COURSE, futureLunchMenu));
+                futureLunchItems.add(new MenuItem("Pasta Primavera", "With seasonal vegetables", new BigDecimal("10.50"), MenuItemType.MAIN_COURSE, futureLunchMenu));
+                futureLunchItems.add(new MenuItem("Chocolate Brownie", "With vanilla ice cream", new BigDecimal("5.95"), MenuItemType.DESSERT, futureLunchMenu));
+            }
+            menuItemRepository.saveAll(futureLunchItems);
+            
+            // Add different items to future dinner menu
+            List<MenuItem> futureDinnerItems = new ArrayList<>();
+            
+            if (i % 3 == 0) { // Every third day
+                futureDinnerItems.add(new MenuItem("Stuffed Mushrooms", "With herb cream cheese", new BigDecimal("7.95"), MenuItemType.APPETIZER, futureDinnerMenu));
+                futureDinnerItems.add(new MenuItem("Prime Rib", "Slow-roasted with jus", new BigDecimal("24.95"), MenuItemType.MAIN_COURSE, futureDinnerMenu));
+                futureDinnerItems.add(new MenuItem("Seafood Linguine", "Mixed seafood in white wine sauce", new BigDecimal("18.50"), MenuItemType.MAIN_COURSE, futureDinnerMenu));
+                futureDinnerItems.add(new MenuItem("Tiramisu", "Classic Italian dessert", new BigDecimal("6.95"), MenuItemType.DESSERT, futureDinnerMenu));
+            } else if (i % 3 == 1) { // Remainder 1
+                futureDinnerItems.add(new MenuItem("Shrimp Cocktail", "With homemade sauce", new BigDecimal("9.95"), MenuItemType.APPETIZER, futureDinnerMenu));
+                futureDinnerItems.add(new MenuItem("Duck Confit", "With orange sauce", new BigDecimal("22.50"), MenuItemType.MAIN_COURSE, futureDinnerMenu));
+                futureDinnerItems.add(new MenuItem("Vegetable Curry", "Aromatic with basmati rice", new BigDecimal("15.95"), MenuItemType.MAIN_COURSE, futureDinnerMenu));
+                futureDinnerItems.add(new MenuItem("Cheesecake", "New York style", new BigDecimal("7.50"), MenuItemType.DESSERT, futureDinnerMenu));
+            } else { // Remainder 2
+                futureDinnerItems.add(new MenuItem("Tuna Tartare", "With avocado and ponzu", new BigDecimal("12.95"), MenuItemType.APPETIZER, futureDinnerMenu));
+                futureDinnerItems.add(new MenuItem("Lamb Chops", "With mint sauce", new BigDecimal("26.50"), MenuItemType.MAIN_COURSE, futureDinnerMenu));
+                futureDinnerItems.add(new MenuItem("Eggplant Parmesan", "Baked with marinara", new BigDecimal("14.95"), MenuItemType.MAIN_COURSE, futureDinnerMenu));
+                futureDinnerItems.add(new MenuItem("Crème Brûlée", "With caramelized sugar", new BigDecimal("6.95"), MenuItemType.DESSERT, futureDinnerMenu));
+            }
+            menuItemRepository.saveAll(futureDinnerItems);
         }
     }
     

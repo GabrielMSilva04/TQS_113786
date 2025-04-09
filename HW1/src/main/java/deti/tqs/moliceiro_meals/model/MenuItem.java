@@ -2,6 +2,7 @@ package deti.tqs.moliceiro_meals.model;
 
 import jakarta.persistence.*;
 import java.math.BigDecimal;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 public class MenuItem {
@@ -19,6 +20,7 @@ public class MenuItem {
 
     @ManyToOne
     @JoinColumn(name = "menu_id")
+    @JsonIgnoreProperties({"items", "restaurant"})
     private Menu menu;
 
     // Constructors
