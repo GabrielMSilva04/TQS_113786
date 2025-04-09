@@ -1,6 +1,7 @@
 package deti.tqs.moliceiro_meals.controller.frontend;
 
 import deti.tqs.moliceiro_meals.model.Menu;
+import deti.tqs.moliceiro_meals.model.MenuItem;
 import deti.tqs.moliceiro_meals.model.Restaurant;
 import deti.tqs.moliceiro_meals.service.MenuService;
 import deti.tqs.moliceiro_meals.service.ReservationService;
@@ -267,5 +268,129 @@ public class StaffRestaurantController {
         model.addAttribute("pageTitle", restaurant.getName() + " - Menu Management");
         
         return "pages/staff/restaurant-menus";
+    }
+
+    @PostMapping("/{restaurantId}/menus/{menuId}/items")
+    public String addMenuItemToMenu(@PathVariable Long restaurantId,
+                                   @PathVariable Long menuId,
+                                   @ModelAttribute MenuItem menuItem,
+                                   RedirectAttributes redirectAttributes) {
+        logger.info("Adding menu item to menu ID: {} for restaurant ID: {}", menuId, restaurantId);
+        
+        // Validate restaurant exists
+        var restaurantOpt = restaurantService.getRestaurantById(restaurantId);
+        if (restaurantOpt.isEmpty()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Restaurant not found");
+            return "redirect:/staff/restaurants";
+        }
+        
+        // Validate menu exists
+        var menuOpt = menuService.getMenuById(menuId);
+        if (menuOpt.isEmpty()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Menu not found");
+            return "redirect:/staff/restaurants/" + restaurantId;
+        }
+        
+        Menu menu = menuOpt.get();
+        
+        // Validate menu belongs to restaurant
+        if (!menu.getRestaurant().getId().equals(restaurantId)) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Menu does not belong to this restaurant");
+            return "redirect:/staff/restaurants/" + restaurantId;
+        }
+        
+        try {
+            // Associate the menu item with the menu
+            menuItem.setMenu(menu);
+            
+            // Save the menu item
+            menuService.addMenuItem(menuItem);
+            
+            redirectAttributes.addFlashAttribute("successMessage", "Menu item added successfully");
+            return "redirect:/staff/menus/" + menuId;
+        } catch (Exception e) {
+            logger.error("Error adding menu item: {}", e.getMessage(), e);
+            redirectAttributes.addFlashAttribute("errorMessage", "Failed to add menu item: " + e.getMessage());
+            return "redirect:/staff/menus/" + menuId;
+        }
+    }
+
+    @GetMapping("/{restaurantId}/menus/{menuId}/items/add")
+    public String showAddMenuItemForm(@PathVariable Long restaurantId,
+                                     @PathVariable Long menuId,
+                                     Model model,
+                                     RedirectAttributes redirectAttributes) {
+        logger.info("Displaying add menu item form for menu ID: {} of restaurant ID: {}", menuId, restaurantId);
+        
+        // Validate restaurant exists
+        var restaurantOpt = restaurantService.getRestaurantById(restaurantId);
+        if (restaurantOpt.isEmpty()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Restaurant not found");
+            return "redirect:/staff/restaurants";
+        }
+        
+        // Validate menu exists
+        var menuOpt = menuService.getMenuById(menuId);
+        if (menuOpt.isEmpty()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Menu not found");
+            return "redirect:/staff/restaurants/" + restaurantId;
+        }
+        
+        Menu menu = menuOpt.get();
+        
+        // Validate menu belongs to restaurant
+        if (!menu.getRestaurant().getId().equals(restaurantId)) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Menu does not belong to this restaurant");
+            return "redirect:/staff/restaurants/" + restaurantId;
+        }
+        
+        // Create a new menu item
+        MenuItem menuItem = new MenuItem();
+        
+        model.addAttribute("menuItem", menuItem);
+        model.addAttribute("menu", menu);
+        model.addAttribute("restaurant", restaurantOpt.get());
+        model.addAttribute("pageTitle", "Add Menu Item - Staff Dashboard");
+        
+        return "pages/staff/menu-item-form";
+    }
+
+    @PostMapping("/{restaurantId}/menus/{menuId}/items/{itemId}/delete")
+    public String deleteMenuItem(@PathVariable Long restaurantId,
+                               @PathVariable Long menuId,
+                               @PathVariable Long itemId,
+                               RedirectAttributes redirectAttributes) {
+        logger.info("Deleting menu item ID: {} from menu ID: {} of restaurant ID: {}", itemId, menuId, restaurantId);
+        
+        try {
+            // Validate the menu item exists
+            var menuItemOpt = menuService.getMenuItemById(itemId);
+            if (menuItemOpt.isEmpty()) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Menu item not found");
+                return "redirect:/staff/menus/" + menuId;
+            }
+            
+            // Validate the menu item belongs to the correct menu and restaurant
+            MenuItem menuItem = menuItemOpt.get();
+            if (menuItem.getMenu() == null || !menuItem.getMenu().getId().equals(menuId)) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Menu item does not belong to this menu");
+                return "redirect:/staff/menus/" + menuId;
+            }
+            
+            if (menuItem.getMenu().getRestaurant() == null || !menuItem.getMenu().getRestaurant().getId().equals(restaurantId)) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Menu item does not belong to this restaurant");
+                return "redirect:/staff/restaurants/" + restaurantId;
+            }
+            
+            // Delete the menu item
+            menuService.deleteMenuItem(itemId);
+            
+            redirectAttributes.addFlashAttribute("successMessage", "Menu item deleted successfully");
+        } catch (Exception e) {
+            logger.error("Error deleting menu item: {}", e.getMessage(), e);
+            redirectAttributes.addFlashAttribute("errorMessage", "Failed to delete menu item: " + e.getMessage());
+        }
+        
+        return "redirect:/staff/menus/" + menuId;
     }
 }

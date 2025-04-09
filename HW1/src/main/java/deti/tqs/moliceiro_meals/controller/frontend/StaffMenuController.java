@@ -17,6 +17,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Controller
@@ -234,5 +235,79 @@ public class StaffMenuController {
         }
         
         return "redirect:/staff/menus/" + menuId + "/edit";
+    }
+
+    @GetMapping("/{id}/items")
+    public String showMenuItemsPage(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
+        logger.info("Displaying menu items page for menu ID: {}", id);
+        
+        var menuOpt = menuService.getMenuById(id);
+        if (menuOpt.isEmpty()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Menu not found");
+            return "redirect:/staff/restaurants";
+        }
+        
+        model.addAttribute("menu", menuOpt.get());
+        model.addAttribute("restaurant", menuOpt.get().getRestaurant());
+        model.addAttribute("pageTitle", "Manage Menu Items - Staff Dashboard");
+        
+        return "pages/staff/menu-items";
+    }
+
+    @PostMapping("/{id}/items/save")
+    public String saveMenuItems(@PathVariable Long id, 
+                                @RequestParam Map<String, String> formParams,
+                                RedirectAttributes redirectAttributes) {
+        logger.info("Saving menu items for menu ID: {}", id);
+        
+        try {
+            // Process the form data to extract menu items
+            // This is just a placeholder for the actual implementation
+            menuService.updateMenuItems(id, formParams);
+            
+            redirectAttributes.addFlashAttribute("successMessage", "Menu items saved successfully");
+            return "redirect:/staff/menus/" + id;
+        } catch (Exception e) {
+            logger.error("Error saving menu items", e);
+            redirectAttributes.addFlashAttribute("errorMessage", "Error saving menu items: " + e.getMessage());
+            return "redirect:/staff/menus/" + id + "/items";
+        }
+    }
+
+    @PostMapping("/{id}/items/add")
+    public String addMenuItem(@PathVariable Long id,
+                             @RequestParam String name,
+                             @RequestParam BigDecimal price,
+                             @RequestParam MenuItemType type,
+                             @RequestParam(required = false) String description,
+                             RedirectAttributes redirectAttributes) {
+        logger.info("Adding menu item to menu ID: {}", id);
+        
+        try {
+            // Get the menu
+            Optional<Menu> menuOpt = menuService.getMenuById(id);
+            if (menuOpt.isEmpty()) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Menu not found");
+                return "redirect:/staff/restaurants";
+            }
+            
+            // Create the menu item
+            MenuItem item = new MenuItem();
+            item.setName(name);
+            item.setPrice(price);
+            item.setType(type);
+            item.setDescription(description != null ? description : "");
+            item.setMenu(menuOpt.get());
+            
+            // Save the menu item
+            menuItemService.addMenuItem(item);
+            
+            redirectAttributes.addFlashAttribute("successMessage", "Menu item added successfully");
+        } catch (Exception e) {
+            logger.error("Error adding menu item", e);
+            redirectAttributes.addFlashAttribute("errorMessage", "Error adding menu item: " + e.getMessage());
+        }
+        
+        return "redirect:/staff/menus/" + id + "/items";
     }
 }

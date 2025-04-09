@@ -43,26 +43,26 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Restaurant Name -->
                         <div class="form-control">
-                            <label class="label">
+                            <label class="label" for="restaurantName">
                                 <span class="label-text">Restaurant Name*</span>
                             </label>
-                            <input type="text" th:field="*{name}" placeholder="Enter restaurant name" 
+                            <input type="text" id="restaurantName" th:field="*{name}" placeholder="Enter restaurant name" 
                                    class="input input-bordered w-full" required 
                                    th:classappend="${#fields.hasErrors('name')} ? 'input-error' : ''">
-                            <label class="label" th:if="${#fields.hasErrors('name')}">
+                            <label class="label" th:if="${#fields.hasErrors('name')}" for="restaurantName">
                                 <span class="label-text-alt text-error" th:errors="*{name}">Name error</span>
                             </label>
                         </div>
                         
                         <!-- Location -->
                         <div class="form-control">
-                            <label class="label">
+                            <label class="label" for="restaurantLocation">
                                 <span class="label-text">Location*</span>
                             </label>
-                            <input type="text" th:field="*{location}" placeholder="Enter location" 
+                            <input type="text" id="restaurantLocation" th:field="*{location}" placeholder="Enter location" 
                                    class="input input-bordered w-full" required
                                    th:classappend="${#fields.hasErrors('location')} ? 'input-error' : ''">
-                            <label class="label" th:if="${#fields.hasErrors('location')}">
+                            <label class="label" th:if="${#fields.hasErrors('location')}" for="restaurantLocation">
                                 <span class="label-text-alt text-error" th:errors="*{location}">Location error</span>
                             </label>
                         </div>
@@ -70,26 +70,26 @@
                     
                     <!-- Contact Information -->
                     <div class="form-control mt-4">
-                        <label class="label">
+                        <label class="label" for="restaurantContactInfo">
                             <span class="label-text">Contact Information</span>
                         </label>
-                        <input type="text" th:field="*{contactInfo}" placeholder="Enter phone number or email" 
+                        <input type="text" id="restaurantContactInfo" th:field="*{contactInfo}" placeholder="Enter phone number or email" 
                                class="input input-bordered w-full"
                                th:classappend="${#fields.hasErrors('contactInfo')} ? 'input-error' : ''">
-                        <label class="label" th:if="${#fields.hasErrors('contactInfo')}">
+                        <label class="label" th:if="${#fields.hasErrors('contactInfo')}" for="restaurantContactInfo">
                             <span class="label-text-alt text-error" th:errors="*{contactInfo}">Contact info error</span>
                         </label>
                     </div>
                     
                     <!-- Description -->
                     <div class="form-control mt-4">
-                        <label class="label">
+                        <label class="label" for="restaurantDescription">
                             <span class="label-text">Description*</span>
                         </label>
-                        <textarea th:field="*{description}" placeholder="Enter restaurant description" 
+                        <textarea id="restaurantDescription" th:field="*{description}" placeholder="Enter restaurant description" 
                                   class="textarea textarea-bordered h-32" required
                                   th:classappend="${#fields.hasErrors('description')} ? 'textarea-error' : ''"></textarea>
-                        <label class="label" th:if="${#fields.hasErrors('description')}">
+                        <label class="label" th:if="${#fields.hasErrors('description')}" for="restaurantDescription">
                             <span class="label-text-alt text-error" th:errors="*{description}">Description error</span>
                         </label>
                     </div>
@@ -100,7 +100,7 @@
                     
                     <!-- Image Upload (note: actual file upload implementation would require additional backend logic) -->
                     <div class="form-control">
-                        <label class="label">
+                        <label class="label" for="restaurantImage">
                             <span class="label-text">Restaurant Image (Optional)</span>
                         </label>
                         <input type="file" class="file-input file-input-bordered w-full" disabled>

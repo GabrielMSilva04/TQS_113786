@@ -6,6 +6,7 @@ import deti.tqs.moliceiro_meals.repository.MenuItemRepository;
 import deti.tqs.moliceiro_meals.model.MenuItem;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class MenuItemService {
@@ -33,5 +34,9 @@ public class MenuItemService {
 
     public void deleteMenuItem(Long itemId) {
         menuItemRepository.deleteById(itemId);
+    }
+
+    public Optional<MenuItem> getMenuItemById(Long itemId) {
+        return menuItemRepository.findById(itemId);
     }
 }

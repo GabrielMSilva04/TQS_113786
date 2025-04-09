@@ -93,7 +93,7 @@
                     <div th:class="${dateFilter != null ? 'active-filter p-2' : ''}">
                         <form th:action="@{/staff/reservations}" method="get">
                             <div class="form-control">
-                                <label class="label">
+                                <label class="label" for="dateFilter">
                                     <span class="label-text">Filter by Date</span>
                                 </label>
                                 <div class="flex gap-2">
@@ -109,7 +109,7 @@
                     <div th:class="${statusFilter != null ? 'active-filter p-2' : ''}">
                         <form th:action="@{/staff/reservations}" method="get">
                             <div class="form-control">
-                                <label class="label">
+                                <label class="label" for="statusFilter">
                                     <span class="label-text">Filter by Status</span>
                                 </label>
                                 <div class="flex gap-2">
@@ -131,7 +131,7 @@
                     <div th:class="${searchQuery != null ? 'active-filter p-2' : ''}">
                         <form th:action="@{/staff/reservations}" method="get">
                             <div class="form-control">
-                                <label class="label">
+                                <label class="label" for="search">
                                     <span class="label-text">Search Customer</span>
                                 </label>
                                 <div class="flex gap-2">

@@ -7,19 +7,6 @@
 >
 <head>
     <title th:text="${menu.id != null ? 'Edit Menu - Staff Dashboard' : 'Create Menu - Staff Dashboard'}">Menu Form - Staff Dashboard</title>
-    <style>
-        .menu-item {
-            border: 1px solid rgba(0,0,0,0.1);
-            border-radius: 0.5rem;
-            transition: background-color 0.2s;
-        }
-        .menu-item:hover {
-            background-color: rgba(0,0,0,0.02);
-        }
-        .remove-item-btn:hover {
-            color: #f56565;
-        }
-    </style>
 </head>
 <body>
     <section layout:fragment="content">
@@ -48,7 +35,8 @@
             <div class="card-body">
                 <form th:action="${menu.id != null ? '/staff/menus/' + menu.id + '/update' : '/staff/menus/create'}" 
                       method="post" 
-                      th:object="${menu}" id="menuForm">
+                      th:object="${menu}" 
+                      id="menuForm">
                     
                     <!-- Hidden fields for restaurant and menu ID -->
                     <input type="hidden" th:if="${menu.id != null}" th:field="*{id}" />
@@ -57,26 +45,26 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Menu Name -->
                         <div class="form-control">
-                            <label class="label">
+                            <label class="label" for="menuName">
                                 <span class="label-text">Menu Name*</span>
                             </label>
                             <input type="text" th:field="*{name}" placeholder="Enter menu name" 
                                    class="input input-bordered w-full" required 
                                    th:classappend="${#fields.hasErrors('name')} ? 'input-error' : ''">
-                            <label class="label" th:if="${#fields.hasErrors('name')}">
+                            <label class="label" th:if="${#fields.hasErrors('name')}" for="menuName">
                                 <span class="label-text-alt text-error" th:errors="*{name}">Name error</span>
                             </label>
                         </div>
                         
                         <!-- Menu Date -->
                         <div class="form-control">
-                            <label class="label">
+                            <label class="label" for="menuDate">
                                 <span class="label-text">Menu Date*</span>
                             </label>
                             <input type="date" th:field="*{date}" placeholder="Select menu date" 
                                    class="input input-bordered w-full" required
                                    th:classappend="${#fields.hasErrors('date')} ? 'input-error' : ''">
-                            <label class="label" th:if="${#fields.hasErrors('date')}">
+                            <label class="label" th:if="${#fields.hasErrors('date')}" for="menuDate">
                                 <span class="label-text-alt text-error" th:errors="*{date}">Date error</span>
                             </label>
                         </div>
@@ -84,206 +72,70 @@
                     
                     <!-- Description -->
                     <div class="form-control mt-4">
-                        <label class="label">
+                        <label class="label" for="menuDescription">
                             <span class="label-text">Description*</span>
                         </label>
                         <textarea th:field="*{description}" placeholder="Enter menu description" 
                                   class="textarea textarea-bordered h-32" required
                                   th:classappend="${#fields.hasErrors('description')} ? 'textarea-error' : ''"></textarea>
-                        <label class="label" th:if="${#fields.hasErrors('description')}">
+                        <label class="label" th:if="${#fields.hasErrors('description')}" for="menuDescription">
                             <span class="label-text-alt text-error" th:errors="*{description}">Description error</span>
                         </label>
                     </div>
                     
-                    <!-- Menu Items Section -->
-                    <div class="divider">Menu Items</div>
-                    
-                    <div class="form-control mb-6">
-                        <label class="label">
-                            <span class="label-text">Menu Items</span>
-                            <span class="label-text-alt">Add dishes, drinks and other items</span>
-                        </label>
-                        
-                        <!-- Existing Menu Items -->
-                        <div id="menuItemsList" class="mb-4">
-                            <div th:each="item, itemStat : *{items}" class="menu-item p-4 mb-3">
-                                <div class="flex justify-between items-center mb-2">
-                                    <h3 class="font-bold" th:text="${item.name ?: 'New Item'}">Item Name</h3>
-                                    <button type="button" class="remove-item-btn text-gray-500 hover:text-red-500" 
-                                            th:onclick="'removeItem(' + ${itemStat.index} + ')'">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
-                                    </button>
-                                </div>
-                                
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <!-- Item Name -->
-                                    <div class="form-control">
-                                        <label class="label">
-                                            <span class="label-text">Item Name</span>
-                                        </label>
-                                        <input type="text" th:field="*{items[__${itemStat.index}__].name}" 
-                                               placeholder="Enter item name" class="input input-bordered w-full" required>
-                                    </div>
-                                    
-                                    <!-- Item Price -->
-                                    <div class="form-control">
-                                        <label class="label">
-                                            <span class="label-text">Price (€)</span>
-                                        </label>
-                                        <input type="number" step="0.01" min="0" 
-                                               th:field="*{items[__${itemStat.index}__].price}" 
-                                               placeholder="0.00" class="input input-bordered w-full">
-                                    </div>
-                                </div>
-                                
-                                <!-- Item Description -->
-                                <div class="form-control mt-2">
-                                    <label class="label">
-                                        <span class="label-text">Description</span>
-                                    </label>
-                                    <textarea th:field="*{items[__${itemStat.index}__].description}" 
-                                              placeholder="Enter item description" class="textarea textarea-bordered"></textarea>
-                                </div>
-                                
-                                <!-- Hidden ID field for existing items -->
-                                <input type="hidden" th:field="*{items[__${itemStat.index}__].id}" />
-                            </div>
-                        </div>
-                        
-                        <!-- No Items Message -->
-                        <div id="noItemsMessage" class="text-center p-6 bg-base-200 rounded-lg mb-4" 
-                             th:style="${menu.items != null && !menu.items.isEmpty()} ? 'display:none;' : ''">
-                            <p class="text-gray-500">No items added to this menu yet.</p>
-                            <p class="text-sm mt-2">Use the button below to add your first item.</p>
-                        </div>
-                        
-                        <!-- Add Item Button -->
-                        <button type="button" onclick="addNewItem()" class="btn btn-outline btn-primary">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    <!-- Show item count if in edit mode -->
+                    <div th:if="${menu.id != null && menu.items != null}" class="mt-6">
+                        <div class="alert alert-info">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
-                            Add Menu Item
-                        </button>
+                            <span>
+                                This menu has <strong th:text="${menu.items.size() ?: 0}">0</strong> items. 
+                                Save this menu first, then you can manage menu items.
+                            </span>
+                        </div>
                     </div>
-                    
-                    <!-- Submit Buttons -->
-                    <div class="form-control mt-8">
+
+                    <!-- Submit buttons for the main form -->
+                    <div class="form-control mt-6">
                         <div class="flex justify-end gap-4">
                             <a th:href="@{/staff/restaurants/{id}(id=${restaurant.id})}" class="btn btn-outline">Cancel</a>
                             <button type="submit" class="btn btn-primary">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                 </svg>
-                                <span th:text="${menu.id != null ? 'Update Menu' : 'Create Menu'}">Save</span>
+                                <span th:text="${menu.id != null ? 'Update Menu' : 'Create Menu'}">Save Menu</span>
                             </button>
                         </div>
                     </div>
                 </form>
             </div>
         </div>
-    </section>
-    
-    <!-- Item Template (hidden) for JavaScript to use -->
-    <template id="itemTemplate">
-        <div class="menu-item p-4 mb-3">
-            <div class="flex justify-between items-center mb-2">
-                <h3 class="font-bold">New Item</h3>
-                <button type="button" class="remove-item-btn text-gray-500 hover:text-red-500" onclick="removeItem(INDEX)">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                </button>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- Item Name -->
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Item Name</span>
-                    </label>
-                    <input type="text" name="items[INDEX].name" placeholder="Enter item name" class="input input-bordered w-full" required>
-                </div>
+        
+        <!-- Add a card with manage items button for existing menus -->
+        <div th:if="${menu.id != null}" class="card bg-base-100 shadow-xl mt-8">
+            <div class="card-body">
+                <h2 class="card-title">Manage Menu Items</h2>
+                <p>Add, edit or remove items from this menu</p>
                 
-                <!-- Item Price -->
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Price (€)</span>
-                    </label>
-                    <input type="number" step="0.01" min="0" name="items[INDEX].price" placeholder="0.00" class="input input-bordered w-full">
+                <div class="card-actions justify-end mt-4">
+                    <a th:href="@{/staff/menus/{id}/items(id=${menu.id})}" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                        Manage Menu Items
+                    </a>
                 </div>
-            </div>
-            
-            <!-- Item Description -->
-            <div class="form-control mt-2">
-                <label class="label">
-                    <span class="label-text">Description</span>
-                </label>
-                <textarea name="items[INDEX].description" placeholder="Enter item description" class="textarea textarea-bordered"></textarea>
             </div>
         </div>
-    </template>
-    
-    <script>
-        let itemCounter = /*[[${menu.items != null ? menu.items.size() : 0}]]*/ 0;
         
-        function addNewItem() {
-            // Hide the "no items" message
-            document.getElementById('noItemsMessage').style.display = 'none';
-            
-            // Get the template content
-            const template = document.getElementById('itemTemplate');
-            const templateContent = template.innerHTML;
-            
-            // Replace INDEX with the current counter value
-            const newItem = templateContent.replace(/INDEX/g, itemCounter);
-            
-            // Add the new item HTML to the list
-            const menuItemsList = document.getElementById('menuItemsList');
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = newItem;
-            menuItemsList.appendChild(tempDiv.firstElementChild);
-            
-            // Increment the counter for the next item
-            itemCounter++;
-        }
-        
-        function removeItem(index) {
-            // Find the item by its index in the form
-            const items = document.querySelectorAll('.menu-item');
-            if (index < items.length) {
-                items[index].remove();
-                
-                // Show the "no items" message if all items are removed
-                if (document.querySelectorAll('.menu-item').length === 0) {
-                    document.getElementById('noItemsMessage').style.display = 'block';
-                }
-                
-                // Reindex the remaining items to ensure proper form submission
-                reindexItems();
-            }
-        }
-        
-        function reindexItems() {
-            const items = document.querySelectorAll('.menu-item');
-            items.forEach((item, index) => {
-                // Update all input names to have consecutive indices
-                item.querySelectorAll('input, textarea').forEach(input => {
-                    const name = input.getAttribute('name');
-                    if (name) {
-                        const newName = name.replace(/items\[\d+\]/, `items[${index}]`);
-                        input.setAttribute('name', newName);
-                    }
-                });
-                
-                // Update the remove button's onclick handler
-                const removeBtn = item.querySelector('.remove-item-btn');
-                if (removeBtn) {
-                    removeBtn.setAttribute('onclick', `removeItem(${index})`);
-                }
-            });
-        }
-    </script>
+        <!-- Add a note for new menus -->
+        <div th:if="${menu.id == null}" class="alert alert-info mt-8">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span>You will be able to add menu items after creating the menu.</span>
+        </div>
+    </section>
 </body>
 </html>

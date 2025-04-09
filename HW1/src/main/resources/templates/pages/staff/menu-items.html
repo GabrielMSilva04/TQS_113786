@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html 
+    xmlns:th="http://www.thymeleaf.org"
+    xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layouts/staff-layout}"
+    xml:lang="en"
+>
+<head>
+    <title>Manage Menu Items - Staff Dashboard</title>
+    <style>
+        .menu-item {
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 0.5rem;
+            transition: background-color 0.2s;
+        }
+        .menu-item:hover {
+            background-color: rgba(0,0,0,0.02);
+        }
+        .remove-item-btn:hover {
+            color: #f56565;
+        }
+    </style>
+    
+    <script>
+        // Global variable for tracking item count
+        var itemCounter = 0;
+        
+        // Function to add a new menu item
+        function addItem() {
+            console.log('Add item function called');
+            
+            // Get the values from the form
+            var name = document.getElementById('newItemName').value;
+            console.log('Item name:', name);
+            var price = document.getElementById('newItemPrice').value;
+            console.log('Item price:', price);
+            var type = document.getElementById('newItemType').value;
+            console.log('Item type:', type);
+            var description = document.getElementById('newItemDescription').value;
+            
+            // Create a visible indicator of button click
+            var button = document.querySelector('button[onclick="addItem()"]');
+            if (button) {
+                button.innerText = "Processing...";
+                button.style.backgroundColor = "orange";
+            }
+            
+            // Validate required fields
+            if (!name) {
+                alert('Please enter an item name');
+                resetButton(button);
+                return;
+            }
+            
+            if (!price) {
+                alert('Please enter a price');
+                resetButton(button);
+                return;
+            }
+            
+            if (!type) {
+                alert('Please select an item type');
+                resetButton(button);
+                return;
+            }
+            
+            try {
+                // Create and append the new menu item
+                addNewItemToForm(name, price, type, description);
+                
+                // Show success feedback
+                if (button) {
+                    button.innerText = "Item Added!";
+                    button.style.backgroundColor = "green";
+                    setTimeout(function() { resetButton(button); }, 1500);
+                }
+                
+                // Clear the form inputs
+                document.getElementById('newItemName').value = '';
+                document.getElementById('newItemPrice').value = '';
+                document.getElementById('newItemType').value = '';
+                document.getElementById('newItemDescription').value = '';
+                
+                // Focus on the name field for the next item
+                document.getElementById('newItemName').focus();
+            } catch (error) {
+                alert('Error adding item: ' + error.message);
+                resetButton(button);
+            }
+        }
+        
+        // Helper function to reset the button appearance
+        function resetButton(button) {
+            if (button) {
+                button.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>Add Item';
+                button.style.backgroundColor = "";
+            }
+        }
+        
+        // Function to create and add a new menu item to the form
+        function addNewItemToForm(name, price, type, description) {
+            // Create a new menu item element
+            var newItem = document.createElement('div');
+            newItem.className = 'menu-item p-4 mb-3';
+            
+            // Add content to the new item
+            newItem.innerHTML = `
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="font-bold">${name}</h3>
+                    <button type="button" class="remove-item-btn text-gray-500 hover:text-red-500" onclick="removeItem(${itemCounter})">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Item Name -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Item Name</span>
+                        </label>
+                        <input type="text" name="items[${itemCounter}].name" value="${name}" 
+                               placeholder="Enter item name" class="input input-bordered w-full" required>
+                    </div>
+                    
+                    <!-- Item Price -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Price (€)</span>
+                        </label>
+                        <input type="number" step="0.01" min="0" name="items[${itemCounter}].price" 
+                               value="${price}" placeholder="0.00" class="input input-bordered w-full">
+                    </div>
+                </div>
+                
+                <!-- Item Type -->
+                <div class="form-control mt-2">
+                    <label class="label">
+                        <span class="label-text">Item Type</span>
+                    </label>
+                    <select name="items[${itemCounter}].type" class="select select-bordered w-full">
+                        <option value="APPETIZER" ${type === 'APPETIZER' ? 'selected' : ''}>Appetizer</option>
+                        <option value="MAIN_COURSE" ${type === 'MAIN_COURSE' ? 'selected' : ''}>Main Course</option>
+                        <option value="DESSERT" ${type === 'DESSERT' ? 'selected' : ''}>Dessert</option>
+                        <option value="BEVERAGE" ${type === 'BEVERAGE' ? 'selected' : ''}>Beverage</option>
+                    </select>
+                </div>
+                
+                <!-- Item Description -->
+                <div class="form-control mt-2">
+                    <label class="label">
+                        <span class="label-text">Description</span>
+                    </label>
+                    <textarea name="items[${itemCounter}].description" 
+                              placeholder="Enter item description" class="textarea textarea-bordered">${description}</textarea>
+                </div>
+            `;
+            
+            // Add the new item to the list
+            var menuItemsList = document.getElementById('menuItemsList');
+            menuItemsList.appendChild(newItem);
+            
+            // Hide the "no items" message
+            var noItemsMessage = document.getElementById('noItemsMessage');
+            if (noItemsMessage) {
+                noItemsMessage.style.display = 'none';
+            }
+            
+            // Increment the counter for the next item
+            itemCounter++;
+            
+            console.log('Item added successfully. Total items: ' + itemCounter);
+        }
+        
+        // Function to remove a menu item
+        function removeItem(index) {
+            console.log('Removing item at index ' + index);
+            
+            // Find all menu items
+            var items = document.querySelectorAll('.menu-item');
+            
+            // Make sure the index is valid
+            if (index >= 0 && index < items.length) {
+                // Remove the item at the specified index
+                items[index].remove();
+                
+                // Show the "no items" message if all items are removed
+                if (document.querySelectorAll('.menu-item').length === 0) {
+                    var noItemsMessage = document.getElementById('noItemsMessage');
+                    if (noItemsMessage) {
+                        noItemsMessage.style.display = 'block';
+                    }
+                }
+                
+                // Reindex the remaining items
+                reindexItems();
+            }
+        }
+        
+        // Function to reindex menu items after removal
+        function reindexItems() {
+            console.log('Reindexing items');
+            
+            // Get all menu items
+            var items = document.querySelectorAll('.menu-item');
+            
+            // Update each item's fields with the new index
+            items.forEach(function(item, newIndex) {
+                // Update remove button
+                var removeBtn = item.querySelector('.remove-item-btn');
+                if (removeBtn) {
+                    removeBtn.setAttribute('onclick', 'removeItem(' + newIndex + ')');
+                }
+                
+                // Update all form fields
+                item.querySelectorAll('input, select, textarea').forEach(function(input) {
+                    var name = input.getAttribute('name');
+                    if (name && name.includes('[')) {
+                        // Extract the field name (e.g., "name", "price", etc.)
+                        var fieldName = name.substring(name.indexOf('].') + 2);
+                        // Create the new name with updated index
+                        var newName = 'items[' + newIndex + '].' + fieldName;
+                        input.setAttribute('name', newName);
+                    }
+                });
+            });
+            
+            // Update the global counter
+            itemCounter = items.length;
+        }
+        
+        // Initialize when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Count existing items to set the initial counter
+            itemCounter = document.querySelectorAll('.menu-item').length;
+            console.log('Initialized with ' + itemCounter + ' existing items');
+            
+            // Add direct click handler as fallback
+            var addBtn = document.getElementById('addItemBtn');
+            if (addBtn) {
+                addBtn.addEventListener('click', function() {
+                    addItem();
+                });
+            }
+        });
+    </script>
+</head>
+<body>
+    <section layout:fragment="content">
+        <div class="mb-6">
+            <a th:href="@{/staff/menus/{id}/edit(id=${menu.id})}" class="btn btn-outline btn-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back to Menu
+            </a>
+        </div>
+        
+        <!-- Alerts for messages -->
+        <div th:if="${successMessage}" class="alert alert-success mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span th:text="${successMessage}">Success message here</span>
+        </div>
+        
+        <div th:if="${errorMessage}" class="alert alert-error mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span th:text="${errorMessage}">Error message here</span>
+        </div>
+        
+        <h1 class="text-3xl font-bold mb-6">
+            <span th:text="'Manage Items for: ' + ${menu.name}">Menu Name</span>
+        </h1>
+        
+        <!-- Menu Summary Card -->
+        <div class="card bg-base-200 mb-6">
+            <div class="card-body">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="card-title" th:text="${menu.name}">Menu Name</h2>
+                        <p class="text-sm" th:text="${menu.description}">Menu description...</p>
+                    </div>
+                    <div>
+                        <div class="badge badge-primary" th:text="${#temporals.format(menu.date, 'EEE, MMM d, yyyy')}">Mon, Apr 10, 2023</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Current Items List -->
+        <div class="card bg-base-100 shadow-xl mb-8">
+            <div class="card-body">
+                <h2 class="card-title mb-4">Current Menu Items</h2>
+                
+                <div th:if="${menu.items == null || menu.items.isEmpty()}" class="alert alert-warning">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <span>This menu doesn't have any items yet. Add your first item using the form below.</span>
+                </div>
+                
+                <div th:if="${menu.items != null && !menu.items.isEmpty()}" class="overflow-x-auto">
+                    <table class="table w-full">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                                <th class="text-right">Price</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="item : ${menu.items}" class="hover">
+                                <td th:text="${item.name}">Item Name</td>
+                                <td th:text="${item.type != null ? item.type.name().replace('_', ' ') : '-'}">Type</td>
+                                <td th:text="${item.description ?: '-'}">Description</td>
+                                <td class="text-right" th:text="${item.price != null ? #numbers.formatDecimal(item.price, 1, 2) + ' €' : '-'}">0.00 €</td>
+                                <td>
+                                    <form th:action="@{/staff/menus/{menuId}/items/{itemId}/delete(menuId=${menu.id},itemId=${item.id})}" method="post" class="inline">
+                                        <button type="submit" class="btn btn-error btn-xs">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Add New Item Form -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title mb-4">Add New Item</h2>
+                
+                <form th:action="@{/staff/menus/{id}/items/add(id=${menu.id})}" method="post">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Item Name -->
+                        <div class="form-control">
+                            <label class="label" for="itemName">
+                                <span class="label-text">Item Name*</span>
+                            </label>
+                            <input type="text" name="name" placeholder="Enter item name" 
+                                   class="input input-bordered w-full" required>
+                        </div>
+                        
+                        <!-- Item Price -->
+                        <div class="form-control">
+                            <label class="label" for="itemPrice">
+                                <span class="label-text">Price (€)*</span>
+                            </label>
+                            <input type="number" step="0.01" min="0" name="price" 
+                                   placeholder="0.00" class="input input-bordered w-full" required>
+                        </div>
+                    </div>
+                    
+                    <!-- Item Type -->
+                    <div class="form-control mt-4">
+                        <label class="label" for="itemType">
+                            <span class="label-text">Item Type*</span>
+                        </label>
+                        <select name="type" class="select select-bordered w-full" required>
+                            <option value="">Select Item Type</option>
+                            <option value="APPETIZER">Appetizer</option>
+                            <option value="MAIN_COURSE">Main Course</option>
+                            <option value="DESSERT">Dessert</option>
+                            <option value="BEVERAGE">Beverage</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Item Description -->
+                    <div class="form-control mt-4">
+                        <label class="label" for="itemDescription">
+                            <span class="label-text">Description</span>
+                        </label>
+                        <textarea name="description" placeholder="Enter item description" 
+                                  class="textarea textarea-bordered"></textarea>
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <div class="form-control mt-6">
+                        <button type="submit" class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            Add to Menu
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+</body>
+</html>

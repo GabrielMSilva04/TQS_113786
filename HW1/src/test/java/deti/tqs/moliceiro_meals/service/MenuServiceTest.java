@@ -3,6 +3,7 @@ package deti.tqs.moliceiro_meals.service;
 import deti.tqs.moliceiro_meals.model.Menu;
 import deti.tqs.moliceiro_meals.model.Restaurant;
 import deti.tqs.moliceiro_meals.repository.MenuRepository;
+import deti.tqs.moliceiro_meals.repository.MenuItemRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -16,12 +17,14 @@ import static org.mockito.Mockito.*;
 class MenuServiceTest {
 
     private MenuRepository menuRepository;
+    private MenuItemRepository menuItemRepository;
     private MenuService menuService;
 
     @BeforeEach
     void setUp() {
         menuRepository = mock(MenuRepository.class);
-        menuService = new MenuService(menuRepository);
+        menuItemRepository = mock(MenuItemRepository.class);
+        menuService = new MenuService(menuRepository, menuItemRepository);
     }
 
     @Test
