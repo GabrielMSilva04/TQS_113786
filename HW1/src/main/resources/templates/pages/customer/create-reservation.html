@@ -6,7 +6,7 @@
     xml:lang="en"
 >
 <head>
-    <title>Make a Reservation - Moliceiro Meals</title>
+    <title th:text="${pageTitle ?: 'Make a Reservation - Moliceiro Meals'}">Make a Reservation - Moliceiro Meals</title>
     <style>
         .form-section {
             transition: all 0.3s ease;
@@ -20,12 +20,22 @@
     <section layout:fragment="content">
         <h1 class="text-3xl font-bold mb-6">Make a Reservation</h1>
 
-        <!-- Error message if present -->
-        <div th:if="${errorMessage != null}" class="alert alert-error mb-6">
+        <!-- Alert Messages -->
+        <div th:if="${errorMessage}" class="alert alert-error mb-6">
             <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span th:text="${errorMessage}">Error message</span>
+        </div>
+        
+        <!-- Breadcrumbs navigation -->
+        <div class="text-sm breadcrumbs mb-6" th:if="${breadcrumbs != null}">
+            <ul>
+                <li th:each="crumb : ${breadcrumbs}">
+                    <a th:if="${crumb.url != null}" th:href="${crumb.url}" th:text="${crumb.label}">Breadcrumb</a>
+                    <span th:unless="${crumb.url != null}" th:text="${crumb.label}">Breadcrumb</span>
+                </li>
+            </ul>
         </div>
 
         <!-- Selected restaurant details -->
@@ -83,7 +93,7 @@
             <div class="card-body">
                 <h2 class="card-title mb-4">Reservation Details</h2>
                 
-                <form th:action="@{/customer/reservation/create}" method="post" th:object="${reservationForm}">
+                <form th:action="@{/customer/reservation/create}" method="post">
                     <input type="hidden" name="restaurantId" th:value="${restaurant != null ? restaurant.id : ''}">
                     <input type="hidden" name="menuId" th:value="${selectedMenu != null ? selectedMenu.id : ''}">
                     
@@ -108,31 +118,42 @@
                                 <label class="label">
                                     <span class="label-text">Full Name*</span>
                                 </label>
-                                <input type="text" th:field="*{customerName}" placeholder="Enter your full name" class="input input-bordered w-full" required>
+                                <input type="text" name="customerName" 
+                                       th:value="${reservationForm != null ? reservationForm.customerName : ''}" 
+                                       placeholder="Enter your full name" class="input input-bordered w-full" required>
                             </div>
                             
                             <div class="form-control">
                                 <label class="label">
                                     <span class="label-text">Phone Number*</span>
                                 </label>
-                                <input type="tel" th:field="*{customerPhone}" placeholder="Enter your phone number" class="input input-bordered w-full" required>
+                                <input type="tel" name="customerPhone" 
+                                       th:value="${reservationForm != null ? reservationForm.customerPhone : ''}" 
+                                       placeholder="Enter your phone number" class="input input-bordered w-full" required>
                             </div>
                             
                             <div class="form-control">
                                 <label class="label">
                                     <span class="label-text">Email Address*</span>
                                 </label>
-                                <input type="email" th:field="*{customerEmail}" placeholder="Enter your email address" class="input input-bordered w-full" required>
+                                <input type="email" name="customerEmail" 
+                                       th:value="${reservationForm != null ? reservationForm.customerEmail : ''}" 
+                                       placeholder="Enter your email address" class="input input-bordered w-full" required>
                             </div>
                             
                             <div class="form-control">
                                 <label class="label">
                                     <span class="label-text">Party Size*</span>
                                 </label>
-                                <select th:field="*{partySize}" class="select select-bordered w-full" required>
+                                <select name="partySize" class="select select-bordered w-full" required>
                                     <option value="">Select number of guests</option>
-                                    <option th:each="i : ${#numbers.sequence(1, 10)}" th:value="${i}" th:text="${i} + ' guest' + (${i > 1 ? 's' : ''})">1 guest</option>
-                                    <option value="11">More than 10 guests</option>
+                                    <option th:each="i : ${#numbers.sequence(1, 10)}" 
+                                            th:value="${i}" 
+                                            th:text="${i} + ' guest' + (${i > 1 ? 's' : ''})"
+                                            th:selected="${reservationForm != null && reservationForm.partySize != null && reservationForm.partySize == i}">
+                                        1 guest
+                                    </option>
+                                    <option value="11" th:selected="${reservationForm != null && reservationForm.partySize != null && reservationForm.partySize > 10}">More than 10 guests</option>
                                 </select>
                             </div>
                         </div>
@@ -179,7 +200,10 @@
                             <label class="label">
                                 <span class="label-text">Special Requests</span>
                             </label>
-                            <textarea th:field="*{specialRequests}" placeholder="Enter any special requests or dietary requirements" class="textarea textarea-bordered h-24 w-full"></textarea>
+                            <textarea name="specialRequests" 
+                                      placeholder="Enter any special requests or dietary requirements" 
+                                      class="textarea textarea-bordered h-24 w-full"
+                                      th:text="${reservationForm != null ? reservationForm.specialRequests : ''}"></textarea>
                         </div>
                     </div>
                     
@@ -199,14 +223,12 @@
             </div>
         </div>
         
-        <!-- JavaScript to enhance the form -->
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 // Set min date for reservation date input to today
                 const today = new Date().toISOString().split('T')[0];
                 document.getElementById('reservation-date').min = today;
                 
-                // Initialize any other enhancements here
             });
         </script>
     </section>

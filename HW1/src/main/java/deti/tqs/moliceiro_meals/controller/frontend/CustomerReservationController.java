@@ -253,20 +253,60 @@ public class CustomerReservationController {
     @GetMapping("/{code}")
     public String viewReservation(@PathVariable String code, Model model) {
         try {
-            var reservation = reservationService.getReservationByCode(code)
-                    .orElseThrow(() -> new IllegalArgumentException("Reservation not found"));
+            logger.info("Viewing details for reservation with code: {}", code);
             
-            // Add breadcrumbs
+            // Normalize the code
+            String normalizedCode = code.trim().toUpperCase();
+            
+            var reservationOpt = reservationService.getReservationByCode(normalizedCode);
+            if (reservationOpt.isEmpty()) {
+                throw new IllegalArgumentException("Reservation not found with code: " + normalizedCode);
+            }
+            
+            Reservation reservation = reservationOpt.get();
+            logger.info("Found reservation details - ID: {}, Customer: {}, Restaurant: {}", 
+                       reservation.getId(), 
+                       reservation.getCustomerName(),
+                       reservation.getRestaurant() != null ? reservation.getRestaurant().getName() : "Unknown");
+            
+            // Add breadcrumbs with proper HashMap creation to avoid NullPointerException
             List<Map<String, String>> breadcrumbs = new ArrayList<>();
-            breadcrumbs.add(Map.of("label", "My Reservations", "url", "/customer/reservations"));
-            breadcrumbs.add(Map.of("label", "Reservation #" + code, "url", null));
+            
+            Map<String, String> homeMap = new HashMap<>();
+            homeMap.put("label", "Home");
+            homeMap.put("url", "/customer");
+            breadcrumbs.add(homeMap);
+            
+            Map<String, String> reservationsMap = new HashMap<>();
+            reservationsMap.put("label", "My Reservations");
+            reservationsMap.put("url", "/customer/reservation/s");
+            breadcrumbs.add(reservationsMap);
+            
+            Map<String, String> detailsMap = new HashMap<>();
+            detailsMap.put("label", "Reservation #" + code);
+            detailsMap.put("url", null);
+            breadcrumbs.add(detailsMap);
             
             model.addAttribute("reservation", reservation);
             model.addAttribute("breadcrumbs", breadcrumbs);
             model.addAttribute("pageTitle", "Reservation Details - Moliceiro Meals");
+            
             return "pages/customer/reservation-details";
         } catch (Exception e) {
+            logger.error("Error viewing reservation details: {}", e.getMessage(), e);
             model.addAttribute("errorMessage", e.getMessage());
+            
+            // Add breadcrumbs
+            List<Map<String, String>> breadcrumbs = new ArrayList<>();
+            
+            Map<String, String> reservationsCrumb = new HashMap<>();
+            reservationsCrumb.put("label", "My Reservations");
+            reservationsCrumb.put("url", "/customer/reservation/s");
+            breadcrumbs.add(reservationsCrumb);
+            
+            model.addAttribute("breadcrumbs", breadcrumbs);
+            model.addAttribute("pageTitle", "Reservation Not Found - Moliceiro Meals");
+            
             return "pages/customer/view-reservations";
         }
     }
@@ -293,7 +333,12 @@ public class CustomerReservationController {
         List<Reservation> reservations = reservationService.getReservationsByEmail(email);
         
         List<Map<String, String>> breadcrumbs = new ArrayList<>();
-        breadcrumbs.add(Map.of("label", "My Reservations", "url", null));
+        
+        Map<String, String> myReservationsCrumb = new HashMap<>();
+        myReservationsCrumb.put("label", "My Reservations");
+        myReservationsCrumb.put("url", null);
+        
+        breadcrumbs.add(myReservationsCrumb);
         
         model.addAttribute("breadcrumbs", breadcrumbs);
         model.addAttribute("reservations", reservations);
@@ -308,11 +353,72 @@ public class CustomerReservationController {
 
     @GetMapping("")
     public String checkReservation(@RequestParam(required = false) String code, Model model) {
-        if (code != null && !code.trim().isEmpty()) {
-            return "redirect:/customer/reservation/" + code;
+        logger.info("Looking up reservation with code: '{}'", code);
+        
+        if (code == null || code.trim().isEmpty()) {
+            // Return a form to enter the code
+            List<Map<String, String>> breadcrumbs = new ArrayList<>();
+            
+            Map<String, String> checkCrumb = new HashMap<>();
+            checkCrumb.put("label", "Check Reservation");
+            checkCrumb.put("url", null);
+            
+            breadcrumbs.add(checkCrumb);
+            
+            model.addAttribute("breadcrumbs", breadcrumbs);
+            model.addAttribute("pageTitle", "Check Reservation - Moliceiro Meals");
+            
+            return "pages/customer/check-reservation";
         }
         
-        // If no code provided, just show the view reservations page
-        return viewReservations(model);
+        try {
+            // Normalize the code input
+            String normalizedCode = code.trim().toUpperCase();
+            logger.info("Looking up reservation with normalized code: '{}'", normalizedCode);
+            
+            // Try to find the reservation
+            Optional<Reservation> reservationOpt = reservationService.getReservationByCode(normalizedCode);
+            
+            if (reservationOpt.isPresent()) {
+                // Found the reservation, redirect to detailed view
+                Reservation reservation = reservationOpt.get();
+                logger.info("Found reservation: ID={}, Token={}, Customer={}", 
+                           reservation.getId(), reservation.getToken(), reservation.getCustomerName());
+                return "redirect:/customer/reservation/" + reservation.getToken();
+            } else {
+                // Reservation not found
+                logger.warn("No reservation found with code: '{}'", normalizedCode);
+                model.addAttribute("errorMessage", "No reservation found with code: " + normalizedCode);
+                
+                List<Map<String, String>> breadcrumbs = new ArrayList<>();
+                
+                Map<String, String> checkCrumb = new HashMap<>();
+                checkCrumb.put("label", "Check Reservation");
+                checkCrumb.put("url", null);
+                
+                breadcrumbs.add(checkCrumb);
+                
+                model.addAttribute("breadcrumbs", breadcrumbs);
+                model.addAttribute("pageTitle", "Check Reservation - Moliceiro Meals");
+                
+                return "pages/customer/check-reservation";
+            }
+        } catch (Exception e) {
+            logger.error("Error looking up reservation: {}", e.getMessage(), e);
+            model.addAttribute("errorMessage", "An error occurred while looking up your reservation. Please try again.");
+            
+            List<Map<String, String>> breadcrumbs = new ArrayList<>();
+            
+            Map<String, String> checkCrumb = new HashMap<>();
+            checkCrumb.put("label", "Check Reservation");
+            checkCrumb.put("url", null);
+            
+            breadcrumbs.add(checkCrumb);
+            
+            model.addAttribute("breadcrumbs", breadcrumbs);
+            model.addAttribute("pageTitle", "Check Reservation - Moliceiro Meals");
+            
+            return "pages/customer/check-reservation";
+        }
     }
 }

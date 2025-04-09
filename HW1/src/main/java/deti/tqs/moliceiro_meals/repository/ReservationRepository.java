@@ -15,8 +15,10 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     List<Reservation> findByRestaurantIdAndReservationTimeBetween(Long restaurantId, LocalDateTime start, LocalDateTime end);
     List<Reservation> findByRestaurantIdAndStatus(Long restaurantId, ReservationStatus status);
     Optional<Reservation> findByToken(String token);
+    Optional<Reservation> findByTokenIgnoreCase(String token);
 
     List<Reservation> findByStatus(ReservationStatus status);
     List<Reservation> findByReservationTimeBetween(LocalDateTime start, LocalDateTime end);
     List<Reservation> findTop10ByOrderByCreatedAtDesc();
+    List<Reservation> findByCustomerEmail(String email);
 }

@@ -77,7 +77,24 @@ public class ReservationService {
     }
 
     public Optional<Reservation> getReservationByCode(String code) {
-        return reservationRepository.findByToken(code);
+        if (code == null || code.trim().isEmpty()) {
+            return Optional.empty();
+        }
+        
+        // Trim whitespace and convert to uppercase for consistent lookup
+        String normalizedCode = code.trim().toUpperCase();
+        logger.info("Finding reservation with normalized code: {}", normalizedCode);
+        
+        // Try exact match first
+        Optional<Reservation> result = reservationRepository.findByToken(normalizedCode);
+        
+        if (result.isPresent()) {
+            return result;
+        }
+        
+        // If not found, try case-insensitive search if your database supports it
+        // You may need to add this method to your repository
+        return reservationRepository.findByTokenIgnoreCase(normalizedCode);
     }
 
     @Transactional

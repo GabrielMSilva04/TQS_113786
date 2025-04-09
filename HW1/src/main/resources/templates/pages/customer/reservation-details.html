@@ -2,72 +2,182 @@
 <html 
     xmlns:th="http://www.thymeleaf.org"
     xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-    layout:decorate="layouts/layout"
+    layout:decorate="~{layouts/customer-layout}"
     xml:lang="en"
 >
 <head>
-    <title>Your Reservation - Moliceiro Meals</title>
+    <title th:text="${pageTitle ?: 'Reservation Details - Moliceiro Meals'}">Reservation Details - Moliceiro Meals</title>
 </head>
 <body>
     <section layout:fragment="content">
-        <h1 class="text-3xl font-bold mb-6">Your Reservation</h1>
+        <h1 class="text-3xl font-bold mb-6">Reservation Details</h1>
         
-        <div class="card bg-base-100 shadow-xl p-6">
-            <h2 class="text-xl font-bold mb-4" th:text="'Reservation Code: ' + ${reservation.token}"></h2>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <p class="text-gray-700 font-semibold">Restaurant:</p>
-                    <p th:text="${reservation.restaurant.name}"></p>
+        <!-- Alerts for success/error messages -->
+        <div th:if="${successMessage}" class="alert alert-success mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span th:text="${successMessage}">Success message here</span>
+        </div>
+        
+        <div th:if="${errorMessage}" class="alert alert-error mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span th:text="${errorMessage}">Error message here</span>
+        </div>
+        
+        <!-- Breadcrumbs navigation -->
+        <div class="text-sm breadcrumbs mb-6" th:if="${breadcrumbs != null}">
+            <ul>
+                <li th:each="crumb : ${breadcrumbs}">
+                    <a th:if="${crumb.url != null}" th:href="${crumb.url}" th:text="${crumb.label}">Breadcrumb</a>
+                    <span th:unless="${crumb.url != null}" th:text="${crumb.label}">Breadcrumb</span>
+                </li>
+            </ul>
+        </div>
+        
+        <!-- Reservation Details Card -->
+        <div class="card bg-base-100 shadow-xl mb-8">
+            <div class="card-body">
+                <div class="flex justify-between items-start">
+                    <h2 class="card-title text-2xl">
+                        Reservation #<span class="font-mono" th:text="${reservation.token}">F4424C8E</span>
+                    </h2>
+                    <div class="badge" 
+                         th:with="status=${reservation.status?.name() ?: 'UNKNOWN'}"
+                         th:classappend="${
+                            status == 'PENDING' ? 'badge-warning' : 
+                            status == 'CONFIRMED' ? 'badge-success' :
+                            status == 'CHECKED_IN' ? 'badge-info' :
+                            status == 'COMPLETED' ? 'badge-secondary' :
+                            status == 'CANCELLED' ? 'badge-error' :
+                            'badge-ghost'
+                         }"
+                         th:text="${status}">
+                        CONFIRMED
+                    </div>
                 </div>
-                <div>
-                    <p class="text-gray-700 font-semibold">Status:</p>
-                    <p>
-                        <span class="badge" 
-                              th:classappend="${
-                                reservation.status == T(deti.tqs.moliceiro_meals.model.ReservationStatus).PENDING ? 'badge-warning' : 
-                                reservation.status == T(deti.tqs.moliceiro_meals.model.ReservationStatus).CONFIRMED ? 'badge-success' :
-                                reservation.status == T(deti.tqs.moliceiro_meals.model.ReservationStatus).CHECKED_IN ? 'badge-info' :
-                                reservation.status == T(deti.tqs.moliceiro_meals.model.ReservationStatus).COMPLETED ? 'badge-secondary' :
-                                'badge-error'
-                              }"
-                              th:text="${reservation.status}"></span>
-                    </p>
+                
+                <div class="divider"></div>
+                
+                <!-- Restaurant Info -->
+                <div class="mb-6" th:if="${reservation.restaurant != null}">
+                    <h3 class="text-lg font-semibold mb-2">Restaurant</h3>
+                    <div class="flex flex-col md:flex-row gap-4 items-center">
+                        <img src="/images/restaurant-placeholder.jpg" alt="Restaurant" class="w-24 h-24 object-cover rounded-xl">
+                        <div>
+                            <p class="font-bold text-lg" th:text="${reservation.restaurant.name}">O Bairro</p>
+                            <p class="text-gray-600" th:text="${reservation.restaurant.location}">Aveiro</p>
+                            <p class="text-sm mt-1" th:text="${reservation.restaurant.contactInfo}">234 567 890</p>
+                            <a th:href="@{/customer/restaurant/{id}(id=${reservation.restaurant.id})}" class="text-primary text-sm mt-2 inline-block">
+                                View Restaurant Details
+                            </a>
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <p class="text-gray-700 font-semibold">Name:</p>
-                    <p th:text="${reservation.customerName}"></p>
+                
+                <!-- Reservation Details -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <h3 class="text-lg font-semibold mb-2">Date & Time</h3>
+                        <p class="text-lg" th:text="${#temporals.format(reservation.reservationTime, 'EEEE, MMMM d, yyyy')}">Monday, April 10, 2023</p>
+                        <p class="text-xl font-bold" th:text="${#temporals.format(reservation.reservationTime, 'h:mm a')}">7:30 PM</p>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-lg font-semibold mb-2">Party Size</h3>
+                        <p class="text-xl" th:text="${reservation.partySize} + ' ' + (${reservation.partySize == 1 ? 'person' : 'people'})">4 people</p>
+                    </div>
                 </div>
-                <div>
-                    <p class="text-gray-700 font-semibold">Party Size:</p>
-                    <p th:text="${reservation.partySize} + ' people'"></p>
+                
+                <!-- Contact Information -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold mb-2">Contact Information</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-gray-600">Name</p>
+                            <p class="font-semibold" th:text="${reservation.customerName}">João Silva</p>
+                        </div>
+                        
+                        <div>
+                            <p class="text-gray-600">Phone</p>
+                            <p class="font-semibold" th:text="${reservation.customerPhone}">912345678</p>
+                        </div>
+                        
+                        <div>
+                            <p class="text-gray-600">Email</p>
+                            <p class="font-semibold" th:text="${reservation.customerEmail}">joao.silva@email.com</p>
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <p class="text-gray-700 font-semibold">Date & Time:</p>
-                    <p th:text="${#temporals.format(reservation.reservationTime, 'EEEE, MMMM d, yyyy - HH:mm')}"></p>
+                
+                <!-- Special Requests -->
+                <div class="mb-6" th:if="${reservation.specialRequests != null && !reservation.specialRequests.isEmpty()}">
+                    <h3 class="text-lg font-semibold mb-2">Special Requests</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p th:text="${reservation.specialRequests}">Window table if possible</p>
+                    </div>
                 </div>
-                <div>
-                    <p class="text-gray-700 font-semibold">Contact Phone:</p>
-                    <p th:text="${reservation.customerPhone}"></p>
+                
+                <!-- Selected Menu -->
+                <div class="mb-6" th:if="${reservation.menu != null}">
+                    <h3 class="text-lg font-semibold mb-2">Selected Menu</h3>
+                    <div class="card bg-base-100 border border-gray-200">
+                        <div class="card-body p-4">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-bold" th:text="${reservation.menu.name}">Daily Lunch Special</h4>
+                                    <p class="text-sm text-gray-600" th:text="${reservation.menu.description}">Chef's daily selection</p>
+                                </div>
+                                <div class="badge badge-primary" th:if="${reservation.menu.date != null}" 
+                                     th:text="${#temporals.format(reservation.menu.date, 'MMM d, yyyy')}">
+                                    Apr 10, 2023
+                                </div>
+                            </div>
+                            
+                            <!-- Menu Items -->
+                            <div th:if="${reservation.menu.items != null && !reservation.menu.items.isEmpty()}" class="mt-4">
+                                <div class="divider text-sm my-2">Menu Items</div>
+                                <ul class="menu bg-base-100 w-full p-0">
+                                    <li th:each="item : ${reservation.menu.items}" class="menu-item rounded-lg p-2 mb-1">
+                                        <div class="flex justify-between items-center w-full">
+                                            <div>
+                                                <p class="font-semibold" th:text="${item.name}">Item name</p>
+                                                <p class="text-xs text-gray-600" th:text="${item.description}">Item description</p>
+                                            </div>
+                                            <div class="text-right">
+                                                <p class="font-bold" th:text="${item.price + '€'}">12.99€</p>
+                                            </div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <p class="text-gray-700 font-semibold">Contact Email:</p>
-                    <p th:text="${reservation.customerEmail}"></p>
+                
+                <!-- Action Buttons -->
+                <div class="card-actions justify-end mt-6">
+                    <form th:if="${reservation.status?.name() == 'PENDING' || reservation.status?.name() == 'CONFIRMED'}"
+                          th:action="@{/customer/reservation/cancel/{token}(token=${reservation.token})}" 
+                          method="post" 
+                          onsubmit="return confirm('Are you sure you want to cancel this reservation? This action cannot be undone.');">
+                        <button type="submit" class="btn btn-error">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                            Cancel Reservation
+                        </button>
+                    </form>
+                    
+                    <a href="/customer/reservation/s" class="btn btn-outline">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z" />
+                        </svg>
+                        Back to Reservations
+                    </a>
                 </div>
-                <div>
-                    <p class="text-gray-700 font-semibold">Special Requests:</p>
-                    <p th:text="${reservation.specialRequests != null and reservation.specialRequests != '' ? reservation.specialRequests : 'None'}"></p>
-                </div>
-            </div>
-            
-            <div class="mt-6" th:if="${reservation.status == T(deti.tqs.moliceiro_meals.model.ReservationStatus).PENDING || reservation.status == T(deti.tqs.moliceiro_meals.model.ReservationStatus).CONFIRMED}">
-                <form th:action="@{/reservation/customer/cancel/{code}(code=${reservation.token})}" method="post">
-                    <button type="submit" class="btn btn-error w-full">Cancel Reservation</button>
-                </form>
-            </div>
-            
-            <div class="mt-6">
-                <a href="/reservation/customer" class="btn btn-primary w-full">Back to Reservations</a>
             </div>
         </div>
     </section>
