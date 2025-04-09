@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html 
+    xmlns:th="http://www.thymeleaf.org"
+    xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layouts/customer-layout}"
+    xml:lang="en"
+>
+<head>
+    <title>Restaurants - Moliceiro Meals</title>
+    <style>
+        .restaurant-list-item {
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            transition: background-color 0.2s;
+        }
+        .restaurant-list-item:hover {
+            background-color: rgba(0,0,0,0.03);
+        }
+        .restaurant-list-item.active {
+            background-color: rgba(0,0,0,0.05);
+            border-left: 4px solid var(--p);
+        }
+        .restaurant-info {
+            position: sticky;
+            top: 20px;
+        }
+        @media (max-width: 768px) {
+            .restaurant-info {
+                position: static;
+            }
+        }
+    </style>
+</head>
+<body>
+    <section layout:fragment="content">
+        <h1 class="text-3xl font-bold mb-6">Restaurants</h1>
+        
+        <!-- No restaurants message -->
+        <div th:if="${restaurants == null || restaurants.isEmpty()}" class="alert alert-info">
+            <div>
+                <span>No restaurants available at this time.</span>
+            </div>
+        </div>
+        
+        <!-- Error message if there is one -->
+        <div th:if="${errorMessage != null}" class="alert alert-error mb-6">
+            <div>
+                <span th:text="${errorMessage}">Error message</span>
+            </div>
+        </div>
+        
+        <!-- Two-column layout for restaurant list and details -->
+        <div th:if="${restaurants != null && !restaurants.isEmpty()}" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Left column: Restaurant list -->
+            <div class="col-span-1 overflow-auto rounded-box bg-base-100 shadow-md" style="max-height: 80vh;">
+                <ul id="restaurant-list">
+                    <li th:each="restaurant, iterStat : ${restaurants}" 
+                        th:attr="data-id=${restaurant.id}"
+                        th:class="${iterStat.first ? 'restaurant-list-item active p-4 cursor-pointer' : 'restaurant-list-item p-4 cursor-pointer'}"
+                        onclick="selectRestaurant(this)">
+                        <h3 class="font-bold text-lg" th:text="${restaurant.name}">Restaurant Name</h3>
+                        <p class="text-sm text-gray-500" th:text="${restaurant.location}">Location</p>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Right column: Restaurant details -->
+            <div class="col-span-2">
+                <div th:each="restaurant, iterStat : ${restaurants}" 
+                     th:id="'restaurant-details-' + ${restaurant.id}"
+                     th:class="${iterStat.first ? 'restaurant-info card bg-base-200 shadow-xl' : 'restaurant-info card bg-base-100 shadow-xl hidden'}">
+                    
+                    <figure class="px-4 pt-4">
+                        <img src="/images/restaurant-placeholder.jpg" class="rounded-xl h-48 w-full object-cover" alt="Restaurant" />
+                    </figure>
+                    
+                    <div class="card-body">
+                        <h2 class="card-title text-2xl" th:text="${restaurant.name}">Restaurant Name</h2>
+                        
+                        <!-- Today's menu badge - more safely handled -->
+                        <div class="badge badge-primary" th:if="${hasMenuToday != null && hasMenuToday.containsKey(restaurant.id) && hasMenuToday.get(restaurant.id) == true}">Today's Menu Available</div>
+                        
+                        <p class="text-gray-700 mt-2"><strong>Location:</strong> <span th:text="${restaurant.location}">Location</span></p>
+                        <p class="text-gray-700 mb-4"><strong>Contact:</strong> <span th:text="${restaurant.contactInfo != null ? restaurant.contactInfo : 'Not available'}">Contact</span></p>
+                        
+                        <p class="text-gray-600 my-4" th:text="${restaurant.description}">Description</p>
+                        
+                        <div class="divider">Menu Preview</div>
+                        
+                        <!-- Upcoming menus - with multiple safety checks -->
+                        <div th:if="${upcomingMenus != null && upcomingMenus.containsKey(restaurant.id) && upcomingMenus.get(restaurant.id) != null && !upcomingMenus.get(restaurant.id).isEmpty()}" class="mb-4">
+                            <div th:each="menu, iter : ${upcomingMenus.get(restaurant.id)}" 
+                                 th:if="${iter.index < 2}" 
+                                 class="text-sm font-medium text-gray-700">
+                                <span th:text="${#temporals.format(menu.date, 'E, MMM d')}">Mon, Apr 10</span>: 
+                                <span th:text="${menu.name}">Special Lunch</span>
+                            </div>
+                            
+                            <!-- Only show "+more" if there are more than 2 -->
+                            <div th:if="${upcomingMenus.get(restaurant.id).size() > 2}" class="text-xs text-primary mt-1">
+                                + <span th:text="${upcomingMenus.get(restaurant.id).size() - 2}">3</span> more menus
+                            </div>
+                        </div>
+                        
+                        <!-- No menus available message -->
+                        <div th:unless="${upcomingMenus != null && upcomingMenus.containsKey(restaurant.id) && upcomingMenus.get(restaurant.id) != null && !upcomingMenus.get(restaurant.id).isEmpty()}" class="mb-4">
+                            <p class="text-sm text-gray-500">No upcoming menus available</p>
+                        </div>
+                        
+                        <div class="card-actions justify-end mt-6">
+                            <a th:href="@{/customer/restaurant/{id}(id=${restaurant.id})}" class="btn btn-primary">View Full Details</a>
+                            <a th:href="@{/customer/reservation/create(restaurantId=${restaurant.id})}" class="btn btn-outline">Make Reservation</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <script>
+            // Function to handle restaurant selection
+            function selectRestaurant(element) {
+                // Remove active class from all items
+                document.querySelectorAll('.restaurant-list-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                
+                // Add active class to selected item
+                element.classList.add('active');
+                
+                // Hide all restaurant details
+                document.querySelectorAll('[id^="restaurant-details-"]').forEach(detail => {
+                    detail.classList.add('hidden');
+                });
+                
+                // Show the selected restaurant details
+                const restaurantId = element.getAttribute('data-id');
+                const detailElement = document.getElementById('restaurant-details-' + restaurantId);
+                if (detailElement) {
+                    detailElement.classList.remove('hidden');
+                }
+            }
+        </script>
+    </section>
+</body>
+</html>

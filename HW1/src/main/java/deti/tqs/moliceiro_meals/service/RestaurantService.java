@@ -48,4 +48,13 @@ public class RestaurantService {
         logger.info("Deleting restaurant with ID: {}", id);
         restaurantRepository.deleteById(id);
     }
+
+    public List<Restaurant> getFeaturedRestaurants() {
+        logger.info("Fetching featured restaurants");
+        List<Restaurant> allRestaurants = restaurantRepository.findAll();
+        
+        // Return up to 3 featured restaurants
+        int featuredCount = Math.min(3, allRestaurants.size());
+        return allRestaurants.subList(0, featuredCount);
+    }
 }

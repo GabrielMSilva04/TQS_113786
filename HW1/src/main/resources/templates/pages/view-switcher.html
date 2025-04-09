@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html 
+    xmlns:th="http://www.thymeleaf.org"
+    xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="layouts/layout"
+    xml:lang="en"
+>
+<head>
+    <title>Welcome to Moliceiro Meals</title>
+    <style>
+        .view-option {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .view-option:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        .hero-section {
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7)), url('/images/aveiro-background.jpg');
+            background-size: cover;
+            background-position: center;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div layout:fragment="content" class="min-h-screen flex flex-col">
+        <!-- Hero Section -->
+        <div class="hero-section py-20 mb-10 text-center">
+            <h1 class="text-5xl font-bold mb-4">Moliceiro Meals</h1>
+            <p class="text-xl max-w-2xl mx-auto">The ultimate dining experience in Aveiro</p>
+        </div>
+        
+        <div class="container mx-auto px-4 flex-grow">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-4">Choose Your Experience</h2>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto">Are you looking to make a reservation or are you a staff member?</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-5xl mx-auto">
+                <a href="/customer-redirect" class="no-underline">
+                    <div class="view-option card bg-base-100 shadow-xl hover:shadow-2xl h-full">
+                        <div class="card-body flex flex-col items-center text-center p-8">
+                            <div class="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-6">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                            </div>
+                            <h2 class="card-title text-2xl mb-4">I'm a Customer</h2>
+                            <p class="text-gray-600 mb-6">Browse restaurants, make reservations, and check booking status.</p>
+                            <div class="card-actions justify-center mt-auto">
+                                <button class="btn btn-primary btn-lg px-8">Enter as Customer</button>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                
+                <a href="/staff-redirect" class="no-underline">
+                    <div class="view-option card bg-base-100 shadow-xl hover:shadow-2xl h-full">
+                        <div class="card-body flex flex-col items-center text-center p-8">
+                            <div class="w-24 h-24 bg-secondary/10 rounded-full flex items-center justify-center mb-6">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <h2 class="card-title text-2xl mb-4">I'm Staff</h2>
+                            <p class="text-gray-600 mb-6">Manage reservations, update restaurant information, and handle bookings.</p>
+                            <div class="card-actions justify-center mt-auto">
+                                <button class="btn btn-secondary btn-lg px-8">Enter as Staff</button>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            
+            <!-- Footer with brief info -->
+            <div class="text-center mt-20 mb-10">
+                <p class="text-gray-500">Moliceiro Meals — The best dining experience in Aveiro</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 @Entity
 public class Restaurant {
@@ -23,6 +25,9 @@ public class Restaurant {
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL)
     @JsonIgnore
     private List<Reservation> reservations = new ArrayList<>();
+
+    @Transient // This ensures the map won't be persisted to the database
+    private Map<String, Object> attributes = new HashMap<>();
 
     // Constructors
     public Restaurant() {}
@@ -89,5 +94,17 @@ public class Restaurant {
 
     public void setReservations(List<Reservation> reservations) {
         this.reservations = reservations;
+    }
+
+    public void addAttribute(String name, Object value) {
+        attributes.put(name, value);
+    }
+
+    public Object getAttribute(String name) {
+        return attributes.get(name);
+    }
+
+    public Map<String, Object> getAttributes() {
+        return attributes;
     }
 }

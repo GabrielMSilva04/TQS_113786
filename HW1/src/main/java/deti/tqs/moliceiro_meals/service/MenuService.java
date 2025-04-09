@@ -7,7 +7,9 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class MenuService {
@@ -24,10 +26,11 @@ public class MenuService {
     }
 
     public Menu getMenuByDate(Long restaurantId, LocalDate date) {
-        return menuRepository.findByRestaurantIdAndDate(restaurantId, date)
-                .stream()
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Menu not found for the given date"));
+        List<Menu> menus = menuRepository.findByRestaurantIdAndDate(restaurantId, date);
+        if (menus.isEmpty()) {
+            throw new RuntimeException("Menu not found for the given date");
+        }
+        return menus.get(0);
     }
 
     public List<Menu> getMenusForUpcomingDays(Long restaurantId, int days) {
@@ -55,5 +58,9 @@ public class MenuService {
     @CacheEvict(value = "menus", allEntries = true)
     public void deleteMenu(Long menuId) {
         menuRepository.deleteById(menuId);
+    }
+
+    public Optional<Menu> getMenuById(Long menuId) {
+        return menuRepository.findById(menuId);
     }
 }

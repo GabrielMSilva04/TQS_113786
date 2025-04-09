@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html 
+    xmlns:th="http://www.thymeleaf.org"
+    xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="layouts/staff-layout"
+    xml:lang="en"
+>
+<head>
+    <title>Staff Dashboard - Moliceiro Meals</title>
+</head>
+<body>
+    <section layout:fragment="content">
+        <div class="text-center mb-10">
+            <h1 class="text-4xl font-bold mb-4">Staff Dashboard</h1>
+            <p class="text-xl text-gray-600">Manage reservations and restaurant information</p>
+        </div>
+        
+        <!-- Stats Overview -->
+        <div class="stats shadow w-full mb-10">
+            <div class="stat">
+                <div class="stat-figure text-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                    </svg>
+                </div>
+                <div class="stat-title">Today's Reservations</div>
+                <div class="stat-value text-primary" th:text="${todayReservationsCount ?: 0}">12</div>
+                <div class="stat-desc">Upcoming reservations for today</div>
+            </div>
+            
+            <div class="stat">
+                <div class="stat-figure text-secondary">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                </div>
+                <div class="stat-title">Pending Confirmations</div>
+                <div class="stat-value text-secondary" th:text="${pendingCount ?: 0}">4</div>
+                <div class="stat-desc">Reservations awaiting confirmation</div>
+            </div>
+            
+            <div class="stat">
+                <div class="stat-figure text-secondary">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                </div>
+                <div class="stat-title">Total Restaurants</div>
+                <div class="stat-value text-secondary" th:text="${restaurantCount ?: 0}">8</div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <h2 class="card-title text-2xl mb-4">Reservation Management</h2>
+                    <p class="mb-6">View and manage all restaurant reservations.</p>
+                    <div class="card-actions">
+                        <a href="/staff/reservations" class="btn btn-primary btn-lg w-full">Manage Reservations</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <h2 class="card-title text-2xl mb-4">Restaurant Management</h2>
+                    <p class="mb-6">Update restaurant details, menus, and availability.</p>
+                    <div class="card-actions">
+                        <a href="/staff/restaurants" class="btn btn-primary btn-lg w-full">Manage Restaurants</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Reservations Table -->
+        <div class="overflow-x-auto">
+            <h2 class="text-2xl font-bold mb-4">Recent Reservations</h2>
+            <table class="table w-full">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Customer</th>
+                        <th>Restaurant</th>
+                        <th>Time</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Iterate through recent reservations -->
+                    <tr th:each="reservation : ${recentReservations}" th:if="${recentReservations != null}">
+                        <td th:text="${reservation.token}"></td>
+                        <td th:text="${reservation.customerName}"></td>
+                        <td th:text="${reservation.restaurant.name}"></td>
+                        <td th:text="${#temporals.format(reservation.reservationTime, 'yyyy-MM-dd HH:mm')}"></td>
+                        <td>
+                            <span class="badge" 
+                                  th:classappend="${reservation.status == T(deti.tqs.moliceiro_meals.model.ReservationStatus).PENDING ? 'badge-warning' : 
+                                                    reservation.status == T(deti.tqs.moliceiro_meals.model.ReservationStatus).CONFIRMED ? 'badge-success' : 
+                                                    'badge-error'}"
+                                  th:text="${reservation.status}">
+                            </span>
+                        </td>
+                        <td>
+                            <a th:href="@{/staff/reservations/{id}(id=${reservation.id})}" class="btn btn-sm btn-primary">View</a>
+                        </td>
+                    </tr>
+                    <tr th:if="${recentReservations == null || recentReservations.isEmpty()}">
+                        <td colspan="6" class="text-center">No recent reservations</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="text-center mt-4">
+                <a href="/staff/reservations" class="btn btn-ghost">View All Reservations</a>
+            </div>
+        </div>
+    </section>
+</body>
+</html>

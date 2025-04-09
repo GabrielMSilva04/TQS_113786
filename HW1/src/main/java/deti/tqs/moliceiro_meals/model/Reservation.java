@@ -28,10 +28,14 @@ public class Reservation {
     @JoinColumn(name = "restaurant_id")
     private Restaurant restaurant;
 
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
     // Constructors
     public Reservation() {
         this.token = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
         this.status = ReservationStatus.PENDING;
+        this.createdAt = LocalDateTime.now();
     }
     
     public Reservation(String customerName, String customerEmail, String customerPhone, 
@@ -126,5 +130,13 @@ public class Reservation {
 
     public void setRestaurant(Restaurant restaurant) {
         this.restaurant = restaurant;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 }

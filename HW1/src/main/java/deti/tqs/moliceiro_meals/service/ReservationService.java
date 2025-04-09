@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.List;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Service
 public class ReservationService {
@@ -80,5 +82,45 @@ public class ReservationService {
 
     public List<Reservation> getAllReservations() {
         return reservationRepository.findAll();
+    }
+
+    public Reservation updateReservation(Reservation reservation) {
+        logger.info("Updating reservation with ID: {}", reservation.getId());
+        return reservationRepository.save(reservation);
+    }
+
+    public List<Reservation> getReservationsByStatus(ReservationStatus status) {
+        return reservationRepository.findByStatus(status);
+    }
+
+    public List<Reservation> getReservationsByDate(LocalDate date) {
+        LocalDateTime startOfDay = date.atStartOfDay();
+        LocalDateTime endOfDay = date.atTime(23, 59, 59);
+        return reservationRepository.findByReservationTimeBetween(startOfDay, endOfDay);
+    }
+
+    public List<Reservation> getRecentReservations(int limit) {
+        return reservationRepository.findTop10ByOrderByCreatedAtDesc();
+    }
+
+    public void confirmReservation(Long id) {
+        reservationRepository.findById(id).ifPresent(reservation -> {
+            reservation.setStatus(ReservationStatus.CONFIRMED);
+            reservationRepository.save(reservation);
+        });
+    }
+
+    public void staffCancelReservation(Long id) {
+        reservationRepository.findById(id).ifPresent(reservation -> {
+            reservation.setStatus(ReservationStatus.CANCELLED);
+            reservationRepository.save(reservation);
+        });
+    }
+
+    public void completeReservation(Long id) {
+        reservationRepository.findById(id).ifPresent(reservation -> {
+            reservation.setStatus(ReservationStatus.COMPLETED);
+            reservationRepository.save(reservation);
+        });
     }
 }
