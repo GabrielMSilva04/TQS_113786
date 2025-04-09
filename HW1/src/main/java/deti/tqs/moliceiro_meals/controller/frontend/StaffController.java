@@ -3,7 +3,6 @@ package deti.tqs.moliceiro_meals.controller.frontend;
 import deti.tqs.moliceiro_meals.model.ReservationStatus;
 import deti.tqs.moliceiro_meals.service.ReservationService;
 import deti.tqs.moliceiro_meals.service.RestaurantService;
-import deti.tqs.moliceiro_meals.service.MenuService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -20,12 +19,10 @@ public class StaffController {
     
     private final ReservationService reservationService;
     private final RestaurantService restaurantService;
-    private final MenuService menuService;
 
-    public StaffController(ReservationService reservationService, RestaurantService restaurantService, MenuService menuService) {
+    public StaffController(ReservationService reservationService, RestaurantService restaurantService) {
         this.reservationService = reservationService;
         this.restaurantService = restaurantService;
-        this.menuService = menuService;
     }
 
     @GetMapping

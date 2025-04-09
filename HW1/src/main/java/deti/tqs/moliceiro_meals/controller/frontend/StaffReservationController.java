@@ -2,9 +2,7 @@ package deti.tqs.moliceiro_meals.controller.frontend;
 
 import deti.tqs.moliceiro_meals.model.Reservation;
 import deti.tqs.moliceiro_meals.model.ReservationStatus;
-import deti.tqs.moliceiro_meals.model.Restaurant;
 import deti.tqs.moliceiro_meals.service.ReservationService;
-import deti.tqs.moliceiro_meals.service.RestaurantService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -14,23 +12,54 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
 
 @Controller
 @RequestMapping("/staff/reservations")
 public class StaffReservationController {
 
     private static final Logger logger = LoggerFactory.getLogger(StaffReservationController.class);
+    
+    // View constants
+    private static final String VIEW_RESERVATIONS = "pages/staff/reservations";
+    private static final String VIEW_RESERVATION_DETAILS = "pages/staff/reservation-details";
+    
+    // Redirect constants
+    private static final String REDIRECT_RESERVATIONS = "redirect:/staff/reservations";
+    
+    // Model attribute constants
+    private static final String ATTR_ERROR_MESSAGE = "errorMessage";
+    private static final String ATTR_SUCCESS_MESSAGE = "successMessage";
+    private static final String ATTR_PAGE_TITLE = "pageTitle";
+    private static final String ATTR_RESERVATION = "reservation";
+    private static final String ATTR_DATE_FILTER = "dateFilter";
+    private static final String ATTR_STATUS_FILTER = "statusFilter";
+    private static final String ATTR_SEARCH_QUERY = "searchQuery";
+    private static final String ATTR_PENDING_RESERVATIONS = "pendingReservations";
+    private static final String ATTR_ACTIVE_RESERVATIONS = "activeReservations";
+    private static final String ATTR_CHECKED_IN_RESERVATIONS = "checkedInReservations";
+    private static final String ATTR_COMPLETED_RESERVATIONS = "completedReservations";
+    private static final String ATTR_CANCELLED_RESERVATIONS = "cancelledReservations";
+    
+    // Error message constants
+    private static final String ERROR_RESERVATION_NOT_FOUND = "Reservation not found";
+    private static final String ERROR_CONFIRM_RESERVATION = "Failed to confirm reservation: ";
+    private static final String ERROR_CANCEL_RESERVATION = "Failed to cancel reservation: ";
+    private static final String ERROR_CHECK_IN = "Failed to check in guest: ";
+    private static final String ERROR_COMPLETE_RESERVATION = "Failed to complete reservation: ";
+    
+    // Success message constants
+    private static final String SUCCESS_CONFIRM_RESERVATION = "Reservation confirmed successfully";
+    private static final String SUCCESS_CANCEL_RESERVATION = "Reservation cancelled successfully";
+    private static final String SUCCESS_CHECK_IN = "Guest checked in successfully";
+    private static final String SUCCESS_COMPLETE_RESERVATION = "Reservation marked as completed";
 
     private final ReservationService reservationService;
-    private final RestaurantService restaurantService;
 
-    public StaffReservationController(ReservationService reservationService, RestaurantService restaurantService) {
+    public StaffReservationController(ReservationService reservationService) {
         this.reservationService = reservationService;
-        this.restaurantService = restaurantService;
     }
 
     @GetMapping
@@ -48,13 +77,13 @@ public class StaffReservationController {
         if (date != null) {
             // Filter by date
             filteredReservations = reservationService.getReservationsByDate(date);
-            model.addAttribute("dateFilter", date);
+            model.addAttribute(ATTR_DATE_FILTER, date);
         } else if (status != null && !status.isEmpty()) {
             // Filter by status
             try {
                 ReservationStatus statusEnum = ReservationStatus.valueOf(status);
                 filteredReservations = reservationService.getReservationsByStatus(statusEnum);
-                model.addAttribute("statusFilter", status);
+                model.addAttribute(ATTR_STATUS_FILTER, status);
             } catch (IllegalArgumentException e) {
                 logger.warn("Invalid status: {}", status);
                 filteredReservations = reservationService.getAllReservations();
@@ -65,45 +94,43 @@ public class StaffReservationController {
             List<Reservation> byName = reservationService.searchReservationsByCustomerName(search);
             Optional<Reservation> byCode = reservationService.getReservationByCode(search);
             
-            // Combine the results
-            filteredReservations = byEmail;
+            // Combine the results and remove duplicates in one step
+            filteredReservations = new ArrayList<>();
+            filteredReservations.addAll(byEmail);
             filteredReservations.addAll(byName);
             byCode.ifPresent(filteredReservations::add);
             
-            // Remove duplicates
-            filteredReservations = filteredReservations.stream().distinct().collect(Collectors.toList());
+            // Use toList() to create an unmodifiable list with distinct elements
+            filteredReservations = filteredReservations.stream().distinct().toList();
             
-            model.addAttribute("searchQuery", search);
+            model.addAttribute(ATTR_SEARCH_QUERY, search);
         } else {
-            // No filters, get all reservations
             filteredReservations = reservationService.getAllReservations();
         }
         
-        // Group reservations by status
         List<Reservation> pendingReservations = filteredReservations.stream()
                 .filter(r -> r.getStatus() == ReservationStatus.PENDING)
-                .collect(Collectors.toList());
+                .toList();
                 
         List<Reservation> activeReservations = filteredReservations.stream()
                 .filter(r -> r.getStatus() == ReservationStatus.CONFIRMED)
-                .collect(Collectors.toList());
+                .toList();
                 
         List<Reservation> checkedInReservations = filteredReservations.stream()
                 .filter(r -> r.getStatus() == ReservationStatus.CHECKED_IN)
-                .collect(Collectors.toList());
+                .toList();
                 
         List<Reservation> completedReservations = filteredReservations.stream()
                 .filter(r -> r.getStatus() == ReservationStatus.COMPLETED)
-                .collect(Collectors.toList());
+                .toList();
         
-        // Add to model
-        model.addAttribute("pendingReservations", pendingReservations);
-        model.addAttribute("activeReservations", activeReservations);
-        model.addAttribute("checkedInReservations", checkedInReservations);
-        model.addAttribute("completedReservations", completedReservations);
-        model.addAttribute("pageTitle", "Reservation Management - Staff Dashboard");
+        model.addAttribute(ATTR_PENDING_RESERVATIONS, pendingReservations);
+        model.addAttribute(ATTR_ACTIVE_RESERVATIONS, activeReservations);
+        model.addAttribute(ATTR_CHECKED_IN_RESERVATIONS, checkedInReservations);
+        model.addAttribute(ATTR_COMPLETED_RESERVATIONS, completedReservations);
+        model.addAttribute(ATTR_PAGE_TITLE, "Reservation Management - Staff Dashboard");
         
-        return "pages/staff/reservations";
+        return VIEW_RESERVATIONS;
     }
 
     @GetMapping("/{id}")
@@ -112,14 +139,14 @@ public class StaffReservationController {
         
         Optional<Reservation> reservationOpt = reservationService.getReservationById(id);
         if (reservationOpt.isEmpty()) {
-            model.addAttribute("errorMessage", "Reservation not found");
-            return "redirect:/staff/reservations";
+            model.addAttribute(ATTR_ERROR_MESSAGE, ERROR_RESERVATION_NOT_FOUND);
+            return REDIRECT_RESERVATIONS;
         }
         
-        model.addAttribute("reservation", reservationOpt.get());
-        model.addAttribute("pageTitle", "Reservation Details - Staff Dashboard");
+        model.addAttribute(ATTR_RESERVATION, reservationOpt.get());
+        model.addAttribute(ATTR_PAGE_TITLE, "Reservation Details - Staff Dashboard");
         
-        return "pages/staff/reservation-details";
+        return VIEW_RESERVATION_DETAILS;
     }
 
     @PostMapping("/{id}/confirm")
@@ -128,13 +155,13 @@ public class StaffReservationController {
         
         try {
             reservationService.confirmReservation(id);
-            redirectAttributes.addFlashAttribute("successMessage", "Reservation confirmed successfully");
+            redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MESSAGE, SUCCESS_CONFIRM_RESERVATION);
         } catch (Exception e) {
             logger.error("Error confirming reservation: {}", e.getMessage(), e);
-            redirectAttributes.addFlashAttribute("errorMessage", "Failed to confirm reservation: " + e.getMessage());
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, ERROR_CONFIRM_RESERVATION + e.getMessage());
         }
         
-        return "redirect:/staff/reservations";
+        return REDIRECT_RESERVATIONS;
     }
 
     @PostMapping("/{id}/cancel")
@@ -143,13 +170,13 @@ public class StaffReservationController {
         
         try {
             reservationService.staffCancelReservation(id);
-            redirectAttributes.addFlashAttribute("successMessage", "Reservation cancelled successfully");
+            redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MESSAGE, SUCCESS_CANCEL_RESERVATION);
         } catch (Exception e) {
             logger.error("Error cancelling reservation: {}", e.getMessage(), e);
-            redirectAttributes.addFlashAttribute("errorMessage", "Failed to cancel reservation: " + e.getMessage());
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, ERROR_CANCEL_RESERVATION + e.getMessage());
         }
         
-        return "redirect:/staff/reservations";
+        return REDIRECT_RESERVATIONS;
     }
 
     @PostMapping("/{id}/check-in")
@@ -158,13 +185,13 @@ public class StaffReservationController {
         
         try {
             reservationService.checkInReservation(id);
-            redirectAttributes.addFlashAttribute("successMessage", "Guest checked in successfully");
+            redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MESSAGE, SUCCESS_CHECK_IN);
         } catch (Exception e) {
             logger.error("Error checking in guest: {}", e.getMessage(), e);
-            redirectAttributes.addFlashAttribute("errorMessage", "Failed to check in guest: " + e.getMessage());
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, ERROR_CHECK_IN + e.getMessage());
         }
         
-        return "redirect:/staff/reservations";
+        return REDIRECT_RESERVATIONS;
     }
 
     @PostMapping("/{id}/complete")
@@ -173,27 +200,26 @@ public class StaffReservationController {
         
         try {
             reservationService.completeReservation(id);
-            redirectAttributes.addFlashAttribute("successMessage", "Reservation marked as completed");
+            redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MESSAGE, SUCCESS_COMPLETE_RESERVATION);
         } catch (Exception e) {
             logger.error("Error completing reservation: {}", e.getMessage(), e);
-            redirectAttributes.addFlashAttribute("errorMessage", "Failed to complete reservation: " + e.getMessage());
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, ERROR_COMPLETE_RESERVATION + e.getMessage());
         }
         
-        return "redirect:/staff/reservations";
+        return REDIRECT_RESERVATIONS;
     }
     
-    // Add this method to handle allReservations that was previously in StaffController
     @GetMapping("/all")
     public String allReservations(Model model) {
         logger.info("Viewing all reservations");
         
-        model.addAttribute("pendingReservations", reservationService.getReservationsByStatus(ReservationStatus.PENDING));
-        model.addAttribute("activeReservations", reservationService.getReservationsByStatus(ReservationStatus.CONFIRMED));
-        model.addAttribute("checkedInReservations", reservationService.getReservationsByStatus(ReservationStatus.CHECKED_IN));
-        model.addAttribute("cancelledReservations", reservationService.getReservationsByStatus(ReservationStatus.CANCELLED));
-        model.addAttribute("completedReservations", reservationService.getReservationsByStatus(ReservationStatus.COMPLETED));
-        model.addAttribute("pageTitle", "All Reservations - Staff View");
+        model.addAttribute(ATTR_PENDING_RESERVATIONS, reservationService.getReservationsByStatus(ReservationStatus.PENDING));
+        model.addAttribute(ATTR_ACTIVE_RESERVATIONS, reservationService.getReservationsByStatus(ReservationStatus.CONFIRMED));
+        model.addAttribute(ATTR_CHECKED_IN_RESERVATIONS, reservationService.getReservationsByStatus(ReservationStatus.CHECKED_IN));
+        model.addAttribute(ATTR_CANCELLED_RESERVATIONS, reservationService.getReservationsByStatus(ReservationStatus.CANCELLED));
+        model.addAttribute(ATTR_COMPLETED_RESERVATIONS, reservationService.getReservationsByStatus(ReservationStatus.COMPLETED));
+        model.addAttribute(ATTR_PAGE_TITLE, "All Reservations - Staff View");
         
-        return "pages/staff/reservations";
+        return VIEW_RESERVATIONS;
     }
 }

@@ -5,6 +5,8 @@ import deti.tqs.moliceiro_meals.repository.MenuItemRepository;
 import deti.tqs.moliceiro_meals.repository.MenuRepository;
 import deti.tqs.moliceiro_meals.repository.ReservationRepository;
 import deti.tqs.moliceiro_meals.repository.RestaurantRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,8 +23,15 @@ import java.util.UUID;
 @Configuration
 public class DataInitializer {
 
+    private static final Logger logger = LoggerFactory.getLogger(DataInitializer.class);
+
+    private static final String RESTAURANT_MOLICEIRO = "Restaurant Do Moliceiro";
+    private static final String RESTAURANT_SALINEIRA = "A Salineira";
+    private static final String RESTAURANT_RIAVISTA = "Riavista";
+    private static final String RESTAURANT_CERVEJARIA_ROSSIO = "Cervejaria Rossio";
+
     @Bean
-    @Profile("!test") // Don't run this during testing
+    @Profile("!test")
     public CommandLineRunner initializeData(
             RestaurantRepository restaurantRepository,
             MenuRepository menuRepository,
@@ -30,20 +39,18 @@ public class DataInitializer {
             ReservationRepository reservationRepository) {
         
         return args -> {
-            System.out.println("Starting data initialization...");
+            logger.info("Starting data initialization...");
             
-            // Check if data already exists (to avoid duplicating on restarts)
             if (restaurantRepository.count() > 0) {
-                System.out.println("Data already exists, skipping initialization");
-                return; // Data already exists, skip initialization
+                logger.info("Data already exists, skipping initialization");
+                return;
             }
 
-            // Create example restaurants
             List<Restaurant> restaurants = new ArrayList<>();
             
             // Restaurant 1
             Restaurant restaurant1 = new Restaurant(
-                "O Bairro", 
+                RESTAURANT_MOLICEIRO, 
                 "Aveiro",
                 "A modern Portuguese restaurant with a cozy atmosphere, serving traditional dishes with a contemporary twist.",
                 "234 567 890"
@@ -52,7 +59,7 @@ public class DataInitializer {
             
             // Restaurant 2
             Restaurant restaurant2 = new Restaurant(
-                "Salpoente",
+                RESTAURANT_SALINEIRA,
                 "Aveiro Canal Central",
                 "Set in a historic salt warehouse, this upscale restaurant offers innovative cuisine using local ingredients.",
                 "234 382 674"
@@ -61,7 +68,7 @@ public class DataInitializer {
             
             // Restaurant 3
             Restaurant restaurant3 = new Restaurant(
-                "Ramona",
+                RESTAURANT_RIAVISTA,
                 "Rua da Estação",
                 "A vibrant tapas bar with an extensive wine list and a lively atmosphere.",
                 "234 483 926"
@@ -70,15 +77,15 @@ public class DataInitializer {
             
             // Restaurant 4
             Restaurant restaurant4 = new Restaurant(
-                "Cervejaria Rossio", 
+                RESTAURANT_CERVEJARIA_ROSSIO, 
                 "Praça do Rossio",
                 "A traditional beer house specializing in fresh seafood and draft beers.",
                 "234 912 154"
             );
             restaurants.add(restaurant4);
             
-            // Save restaurants
             restaurantRepository.saveAll(restaurants);
+            logger.debug("Created and saved {} restaurants", restaurants.size());
             
             // Create menus for each restaurant (today and upcoming days)
             createMenusForRestaurant(restaurant1, menuRepository, menuItemRepository);
@@ -89,7 +96,7 @@ public class DataInitializer {
             // Create sample reservations
             createSampleReservations(restaurants, reservationRepository);
             
-            System.out.println("Data initialization completed successfully");
+            logger.info("Data initialization completed successfully");
         };
     }
     
@@ -97,6 +104,8 @@ public class DataInitializer {
             Restaurant restaurant, 
             MenuRepository menuRepository,
             MenuItemRepository menuItemRepository) {
+        
+        logger.debug("Creating menus for restaurant: {}", restaurant.getName());
         
         LocalDate today = LocalDate.now();
         
@@ -118,24 +127,23 @@ public class DataInitializer {
         );
         menuRepository.save(todayDinnerMenu);
         
-        // Add menu items to today's lunch menu - varied by restaurant
         List<MenuItem> todayLunchItems = new ArrayList<>();
         
-        if (restaurant.getName().equals("O Bairro")) {
+        if (restaurant.getName().equals(RESTAURANT_MOLICEIRO)) {
             // Traditional Portuguese lunch
             todayLunchItems.add(new MenuItem("Caldo Verde", "Traditional Portuguese kale soup with chorizo", new BigDecimal("4.50"), MenuItemType.APPETIZER, todayLunchMenu));
             todayLunchItems.add(new MenuItem("Bacalhau à Gomes de Sá", "Codfish with potatoes, eggs, and olives", new BigDecimal("12.75"), MenuItemType.MAIN_COURSE, todayLunchMenu));
             todayLunchItems.add(new MenuItem("Roasted Chicken", "Farm chicken with piri-piri sauce", new BigDecimal("9.95"), MenuItemType.MAIN_COURSE, todayLunchMenu));
             todayLunchItems.add(new MenuItem("Arroz Doce", "Sweet rice pudding with cinnamon", new BigDecimal("3.95"), MenuItemType.DESSERT, todayLunchMenu));
             todayLunchItems.add(new MenuItem("Fresh Orange Juice", "Squeezed daily", new BigDecimal("2.75"), MenuItemType.BEVERAGE, todayLunchMenu));
-        } else if (restaurant.getName().equals("Salpoente")) {
+        } else if (restaurant.getName().equals(RESTAURANT_SALINEIRA)) {
             // Upscale lunch
             todayLunchItems.add(new MenuItem("Oysters", "Fresh local oysters with lemon", new BigDecimal("14.50"), MenuItemType.APPETIZER, todayLunchMenu));
             todayLunchItems.add(new MenuItem("Lobster Bisque", "Creamy soup with lobster pieces", new BigDecimal("9.95"), MenuItemType.APPETIZER, todayLunchMenu));
             todayLunchItems.add(new MenuItem("Sea Bass Fillet", "Grilled with herbs and olive oil", new BigDecimal("18.50"), MenuItemType.MAIN_COURSE, todayLunchMenu));
             todayLunchItems.add(new MenuItem("Chocolate Mousse", "Dark chocolate with sea salt", new BigDecimal("7.95"), MenuItemType.DESSERT, todayLunchMenu));
             todayLunchItems.add(new MenuItem("White Wine Sangria", "Made with local white wine", new BigDecimal("6.50"), MenuItemType.BEVERAGE, todayLunchMenu));
-        } else if (restaurant.getName().equals("Ramona")) {
+        } else if (restaurant.getName().equals(RESTAURANT_RIAVISTA)) {
             // Tapas for lunch
             todayLunchItems.add(new MenuItem("Patatas Bravas", "Fried potatoes with spicy sauce", new BigDecimal("4.95"), MenuItemType.APPETIZER, todayLunchMenu));
             todayLunchItems.add(new MenuItem("Gambas al Ajillo", "Garlic shrimp", new BigDecimal("9.50"), MenuItemType.APPETIZER, todayLunchMenu));
@@ -152,25 +160,26 @@ public class DataInitializer {
         }
         
         menuItemRepository.saveAll(todayLunchItems);
+        logger.debug("Created {} items for lunch menu", todayLunchItems.size());
         
         // Add menu items to today's dinner menu - varied by restaurant
         List<MenuItem> todayDinnerItems = new ArrayList<>();
         
-        if (restaurant.getName().equals("O Bairro")) {
+        if (restaurant.getName().equals(RESTAURANT_MOLICEIRO)) {
             // Traditional Portuguese dinner
             todayDinnerItems.add(new MenuItem("Cheese and Charcuterie Board", "Selection of regional cheeses and cured meats", new BigDecimal("13.95"), MenuItemType.APPETIZER, todayDinnerMenu));
             todayDinnerItems.add(new MenuItem("Grilled Sardines", "Fresh sardines with olive oil and herbs", new BigDecimal("12.50"), MenuItemType.MAIN_COURSE, todayDinnerMenu));
             todayDinnerItems.add(new MenuItem("Octopus Rice", "Slow-cooked octopus with rice", new BigDecimal("14.75"), MenuItemType.MAIN_COURSE, todayDinnerMenu));
             todayDinnerItems.add(new MenuItem("Crème Brûlée", "Traditional French dessert", new BigDecimal("5.50"), MenuItemType.DESSERT, todayDinnerMenu));
             todayDinnerItems.add(new MenuItem("Port Wine", "Aged tawny", new BigDecimal("7.50"), MenuItemType.BEVERAGE, todayDinnerMenu));
-        } else if (restaurant.getName().equals("Salpoente")) {
+        } else if (restaurant.getName().equals(RESTAURANT_SALINEIRA)) {
             // Upscale dinner
             todayDinnerItems.add(new MenuItem("Foie Gras", "With fig jam and brioche", new BigDecimal("16.95"), MenuItemType.APPETIZER, todayDinnerMenu));
             todayDinnerItems.add(new MenuItem("Truffle Risotto", "Arborio rice with black truffle", new BigDecimal("19.50"), MenuItemType.MAIN_COURSE, todayDinnerMenu));
             todayDinnerItems.add(new MenuItem("Wagyu Beef", "Premium beef with roasted vegetables", new BigDecimal("32.95"), MenuItemType.MAIN_COURSE, todayDinnerMenu));
             todayDinnerItems.add(new MenuItem("Crème Caramel", "Traditional custard with caramel", new BigDecimal("8.50"), MenuItemType.DESSERT, todayDinnerMenu));
             todayDinnerItems.add(new MenuItem("Espresso Martini", "Coffee-based cocktail", new BigDecimal("9.95"), MenuItemType.BEVERAGE, todayDinnerMenu));
-        } else if (restaurant.getName().equals("Ramona")) {
+        } else if (restaurant.getName().equals(RESTAURANT_RIAVISTA)) {
             // Evening tapas
             todayDinnerItems.add(new MenuItem("Iberico Ham", "Premium cured ham", new BigDecimal("15.95"), MenuItemType.APPETIZER, todayDinnerMenu));
             todayDinnerItems.add(new MenuItem("Stuffed Peppers", "Peppers filled with goat cheese", new BigDecimal("8.50"), MenuItemType.APPETIZER, todayDinnerMenu));
@@ -248,9 +257,13 @@ public class DataInitializer {
             }
             menuItemRepository.saveAll(futureDinnerItems);
         }
+        
+        logger.debug("Created future menus for restaurant: {}", restaurant.getName());
     }
     
     private void createSampleReservations(List<Restaurant> restaurants, ReservationRepository reservationRepository) {
+        logger.debug("Creating sample reservations");
+        
         LocalDateTime now = LocalDateTime.now();
         List<Reservation> reservations = new ArrayList<>();
         
@@ -329,7 +342,7 @@ public class DataInitializer {
         
         // Save all reservations
         reservationRepository.saveAll(reservations);
-        System.out.println("Created " + reservations.size() + " sample reservations");
+        logger.info("Created {} sample reservations", reservations.size());
     }
     
     private Reservation createReservation(

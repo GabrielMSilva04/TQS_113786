@@ -21,13 +21,60 @@ import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/staff/restaurants")
 public class StaffRestaurantController {
 
     private static final Logger logger = LoggerFactory.getLogger(StaffRestaurantController.class);
+    
+    // View constants
+    private static final String VIEW_RESTAURANTS = "pages/staff/restaurants";
+    private static final String VIEW_RESTAURANT_DETAILS = "pages/staff/restaurant-details";
+    private static final String VIEW_RESTAURANT_FORM = "pages/staff/restaurant-form";
+    private static final String VIEW_RESTAURANT_MENUS = "pages/staff/restaurant-menus";
+    private static final String VIEW_MENU_FORM = "pages/staff/menu-form";
+    private static final String VIEW_MENU_ITEM_FORM = "pages/staff/menu-item-form";
+    
+    // Redirect constants
+    private static final String REDIRECT_STAFF_RESTAURANTS = "redirect:/staff/restaurants";
+    private static final String REDIRECT_STAFF_RESTAURANT_ID = "redirect:/staff/restaurants/";
+    private static final String REDIRECT_STAFF_MENUS = "redirect:/staff/menus/";
+    
+    // Model attribute constants
+    private static final String ATTR_RESTAURANTS = "restaurants";
+    private static final String ATTR_RESTAURANT = "restaurant";
+    private static final String ATTR_RESTAURANT_TODAY_MENU_COUNTS = "restaurantTodayMenuCounts";
+    private static final String ATTR_MENU = "menu";
+    private static final String ATTR_TODAY_MENUS = "todayMenus";
+    private static final String ATTR_UPCOMING_MENUS = "upcomingMenus";
+    private static final String ATTR_ALL_MENUS = "allMenus";
+    private static final String ATTR_MENUS_BY_MONTH = "menusByMonth";
+    private static final String ATTR_RESERVATIONS = "reservations";
+    private static final String ATTR_MENU_ITEM = "menuItem";
+    private static final String ATTR_PAGE_TITLE = "pageTitle";
+    private static final String ATTR_ERROR_MESSAGE = "errorMessage";
+    private static final String ATTR_SUCCESS_MESSAGE = "successMessage";
+    
+    // Success message constants
+    private static final String SUCCESS_RESTAURANT_CREATED = "Restaurant created successfully";
+    private static final String SUCCESS_RESTAURANT_UPDATED = "Restaurant updated successfully";
+    private static final String SUCCESS_RESTAURANT_DELETED = "Restaurant deleted successfully";
+    private static final String SUCCESS_MENU_ITEM_ADDED = "Menu item added successfully";
+    private static final String SUCCESS_MENU_ITEM_DELETED = "Menu item deleted successfully";
+    
+    // Error message constants
+    private static final String ERROR_RESTAURANT_NOT_FOUND = "Restaurant not found";
+    private static final String ERROR_MENU_NOT_FOUND = "Menu not found";
+    private static final String ERROR_MENU_ITEM_NOT_FOUND = "Menu item not found";
+    private static final String ERROR_MENU_NOT_BELONG_RESTAURANT = "Menu does not belong to this restaurant";
+    private static final String ERROR_MENU_ITEM_NOT_BELONG_MENU = "Menu item does not belong to this menu";
+    private static final String ERROR_MENU_ITEM_NOT_BELONG_RESTAURANT = "Menu item does not belong to this restaurant";
+    private static final String ERROR_CREATE_RESTAURANT = "Failed to create restaurant: ";
+    private static final String ERROR_UPDATE_RESTAURANT = "Failed to update restaurant: ";
+    private static final String ERROR_DELETE_RESTAURANT = "Failed to delete restaurant: ";
+    private static final String ERROR_ADD_MENU_ITEM = "Failed to add menu item: ";
+    private static final String ERROR_DELETE_MENU_ITEM = "Failed to delete menu item: ";
 
     private final RestaurantService restaurantService;
     private final MenuService menuService;
@@ -61,11 +108,11 @@ public class StaffRestaurantController {
             }
         }
         
-        model.addAttribute("restaurants", restaurants);
-        model.addAttribute("restaurantTodayMenuCounts", restaurantTodayMenuCounts);
-        model.addAttribute("pageTitle", "Restaurant Management - Staff Dashboard");
+        model.addAttribute(ATTR_RESTAURANTS, restaurants);
+        model.addAttribute(ATTR_RESTAURANT_TODAY_MENU_COUNTS, restaurantTodayMenuCounts);
+        model.addAttribute(ATTR_PAGE_TITLE, "Restaurant Management - Staff Dashboard");
         
-        return "pages/staff/restaurants";
+        return VIEW_RESTAURANTS;
     }
 
     @GetMapping("/{id}")
@@ -74,8 +121,8 @@ public class StaffRestaurantController {
         
         var restaurantOpt = restaurantService.getRestaurantById(id);
         if (restaurantOpt.isEmpty()) {
-            model.addAttribute("errorMessage", "Restaurant not found");
-            return "redirect:/staff/restaurants";
+            model.addAttribute(ATTR_ERROR_MESSAGE, ERROR_RESTAURANT_NOT_FOUND);
+            return REDIRECT_STAFF_RESTAURANTS;
         }
         
         var restaurant = restaurantOpt.get();
@@ -88,23 +135,23 @@ public class StaffRestaurantController {
         List<Menu> upcomingMenus = menuService.getMenusForUpcomingDays(id, 30)
                 .stream()
                 .filter(menu -> !menu.getDate().isEqual(today))
-                .collect(Collectors.toList());
+                .toList();
         
-        model.addAttribute("restaurant", restaurant);
-        model.addAttribute("todayMenus", todayMenus);
-        model.addAttribute("upcomingMenus", upcomingMenus);
-        model.addAttribute("reservations", reservationService.getReservationsByRestaurant(id));
-        model.addAttribute("pageTitle", restaurant.getName() + " - Staff Dashboard");
+        model.addAttribute(ATTR_RESTAURANT, restaurant);
+        model.addAttribute(ATTR_TODAY_MENUS, todayMenus);
+        model.addAttribute(ATTR_UPCOMING_MENUS, upcomingMenus);
+        model.addAttribute(ATTR_RESERVATIONS, reservationService.getReservationsByRestaurant(id));
+        model.addAttribute(ATTR_PAGE_TITLE, restaurant.getName() + " - Staff Dashboard");
         
-        return "pages/staff/restaurant-details";
+        return VIEW_RESTAURANT_DETAILS;
     }
     
     @GetMapping("/create")
     public String showCreateForm(Model model) {
         logger.info("Displaying restaurant creation form");
-        model.addAttribute("restaurant", new Restaurant());
-        model.addAttribute("pageTitle", "Add New Restaurant - Staff Dashboard");
-        return "pages/staff/restaurant-form";
+        model.addAttribute(ATTR_RESTAURANT, new Restaurant());
+        model.addAttribute(ATTR_PAGE_TITLE, "Add New Restaurant - Staff Dashboard");
+        return VIEW_RESTAURANT_FORM;
     }
     
     @PostMapping("/create")
@@ -113,17 +160,17 @@ public class StaffRestaurantController {
         
         if (result.hasErrors()) {
             logger.warn("Validation errors in restaurant creation form");
-            return "pages/staff/restaurant-form";
+            return VIEW_RESTAURANT_FORM;
         }
         
         try {
             restaurantService.saveRestaurant(restaurant);
-            redirectAttributes.addFlashAttribute("successMessage", "Restaurant created successfully");
-            return "redirect:/staff/restaurants";
+            redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MESSAGE, SUCCESS_RESTAURANT_CREATED);
+            return REDIRECT_STAFF_RESTAURANTS;
         } catch (Exception e) {
             logger.error("Error creating restaurant: {}", e.getMessage(), e);
-            redirectAttributes.addFlashAttribute("errorMessage", "Failed to create restaurant: " + e.getMessage());
-            return "redirect:/staff/restaurants/create";
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, ERROR_CREATE_RESTAURANT + e.getMessage());
+            return REDIRECT_STAFF_RESTAURANT_ID + "create";
         }
     }
     
@@ -133,13 +180,13 @@ public class StaffRestaurantController {
         
         var restaurantOpt = restaurantService.getRestaurantById(id);
         if (restaurantOpt.isEmpty()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Restaurant not found");
-            return "redirect:/staff/restaurants";
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, ERROR_RESTAURANT_NOT_FOUND);
+            return REDIRECT_STAFF_RESTAURANTS;
         }
         
-        model.addAttribute("restaurant", restaurantOpt.get());
-        model.addAttribute("pageTitle", "Edit Restaurant - Staff Dashboard");
-        return "pages/staff/restaurant-form";
+        model.addAttribute(ATTR_RESTAURANT, restaurantOpt.get());
+        model.addAttribute(ATTR_PAGE_TITLE, "Edit Restaurant - Staff Dashboard");
+        return VIEW_RESTAURANT_FORM;
     }
     
     @PostMapping("/{id}/update")
@@ -149,19 +196,19 @@ public class StaffRestaurantController {
         
         if (result.hasErrors()) {
             logger.warn("Validation errors in restaurant update form");
-            return "pages/staff/restaurant-form";
+            return VIEW_RESTAURANT_FORM;
         }
         
         try {
             // Make sure the ID matches the path variable
             restaurant.setId(id);
             restaurantService.updateRestaurant(restaurant);
-            redirectAttributes.addFlashAttribute("successMessage", "Restaurant updated successfully");
-            return "redirect:/staff/restaurants/" + id;
+            redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MESSAGE, SUCCESS_RESTAURANT_UPDATED);
+            return REDIRECT_STAFF_RESTAURANT_ID + id;
         } catch (Exception e) {
             logger.error("Error updating restaurant: {}", e.getMessage(), e);
-            redirectAttributes.addFlashAttribute("errorMessage", "Failed to update restaurant: " + e.getMessage());
-            return "redirect:/staff/restaurants/" + id + "/edit";
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, ERROR_UPDATE_RESTAURANT + e.getMessage());
+            return REDIRECT_STAFF_RESTAURANT_ID + id + "/edit";
         }
     }
     
@@ -171,13 +218,13 @@ public class StaffRestaurantController {
         
         try {
             restaurantService.deleteRestaurant(id);
-            redirectAttributes.addFlashAttribute("successMessage", "Restaurant deleted successfully");
+            redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MESSAGE, SUCCESS_RESTAURANT_DELETED);
         } catch (Exception e) {
             logger.error("Error deleting restaurant: {}", e.getMessage(), e);
-            redirectAttributes.addFlashAttribute("errorMessage", "Failed to delete restaurant: " + e.getMessage());
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, ERROR_DELETE_RESTAURANT + e.getMessage());
         }
         
-        return "redirect:/staff/restaurants";
+        return REDIRECT_STAFF_RESTAURANTS;
     }
     
     // Menu related operations
@@ -190,8 +237,8 @@ public class StaffRestaurantController {
         
         var restaurantOpt = restaurantService.getRestaurantById(id);
         if (restaurantOpt.isEmpty()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Restaurant not found");
-            return "redirect:/staff/restaurants";
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, ERROR_RESTAURANT_NOT_FOUND);
+            return REDIRECT_STAFF_RESTAURANTS;
         }
         
         Menu newMenu = new Menu();
@@ -212,11 +259,11 @@ public class StaffRestaurantController {
             newMenu.setDate(LocalDate.now());
         }
         
-        model.addAttribute("menu", newMenu);
-        model.addAttribute("restaurant", restaurantOpt.get());
-        model.addAttribute("pageTitle", "Create Menu - Staff Dashboard");
+        model.addAttribute(ATTR_MENU, newMenu);
+        model.addAttribute(ATTR_RESTAURANT, restaurantOpt.get());
+        model.addAttribute(ATTR_PAGE_TITLE, "Create Menu - Staff Dashboard");
         
-        return "pages/staff/menu-form";
+        return VIEW_MENU_FORM;
     }
 
     @GetMapping("/{id}/menus")
@@ -225,8 +272,8 @@ public class StaffRestaurantController {
         
         var restaurantOpt = restaurantService.getRestaurantById(id);
         if (restaurantOpt.isEmpty()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Restaurant not found");
-            return "redirect:/staff/restaurants";
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, ERROR_RESTAURANT_NOT_FOUND);
+            return REDIRECT_STAFF_RESTAURANTS;
         }
         
         var restaurant = restaurantOpt.get();
@@ -258,16 +305,16 @@ public class StaffRestaurantController {
         List<Menu> upcomingMenus = menuService.getMenusForUpcomingDays(id, 30)
                 .stream()
                 .filter(menu -> !menu.getDate().isEqual(today))
-                .collect(Collectors.toList());
+                .toList();
         
-        model.addAttribute("restaurant", restaurant);
-        model.addAttribute("allMenus", allMenus);
-        model.addAttribute("menusByMonth", menusByMonth);
-        model.addAttribute("todayMenus", todayMenus);
-        model.addAttribute("upcomingMenus", upcomingMenus);
-        model.addAttribute("pageTitle", restaurant.getName() + " - Menu Management");
+        model.addAttribute(ATTR_RESTAURANT, restaurant);
+        model.addAttribute(ATTR_ALL_MENUS, allMenus);
+        model.addAttribute(ATTR_MENUS_BY_MONTH, menusByMonth);
+        model.addAttribute(ATTR_TODAY_MENUS, todayMenus);
+        model.addAttribute(ATTR_UPCOMING_MENUS, upcomingMenus);
+        model.addAttribute(ATTR_PAGE_TITLE, restaurant.getName() + " - Menu Management");
         
-        return "pages/staff/restaurant-menus";
+        return VIEW_RESTAURANT_MENUS;
     }
 
     @PostMapping("/{restaurantId}/menus/{menuId}/items")
@@ -280,23 +327,23 @@ public class StaffRestaurantController {
         // Validate restaurant exists
         var restaurantOpt = restaurantService.getRestaurantById(restaurantId);
         if (restaurantOpt.isEmpty()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Restaurant not found");
-            return "redirect:/staff/restaurants";
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, ERROR_RESTAURANT_NOT_FOUND);
+            return REDIRECT_STAFF_RESTAURANTS;
         }
         
         // Validate menu exists
         var menuOpt = menuService.getMenuById(menuId);
         if (menuOpt.isEmpty()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Menu not found");
-            return "redirect:/staff/restaurants/" + restaurantId;
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, ERROR_MENU_NOT_FOUND);
+            return REDIRECT_STAFF_RESTAURANT_ID + restaurantId;
         }
         
         Menu menu = menuOpt.get();
         
         // Validate menu belongs to restaurant
         if (!menu.getRestaurant().getId().equals(restaurantId)) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Menu does not belong to this restaurant");
-            return "redirect:/staff/restaurants/" + restaurantId;
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, ERROR_MENU_NOT_BELONG_RESTAURANT);
+            return REDIRECT_STAFF_RESTAURANT_ID + restaurantId;
         }
         
         try {
@@ -306,12 +353,12 @@ public class StaffRestaurantController {
             // Save the menu item
             menuService.addMenuItem(menuItem);
             
-            redirectAttributes.addFlashAttribute("successMessage", "Menu item added successfully");
-            return "redirect:/staff/menus/" + menuId;
+            redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MESSAGE, SUCCESS_MENU_ITEM_ADDED);
+            return REDIRECT_STAFF_MENUS + menuId;
         } catch (Exception e) {
             logger.error("Error adding menu item: {}", e.getMessage(), e);
-            redirectAttributes.addFlashAttribute("errorMessage", "Failed to add menu item: " + e.getMessage());
-            return "redirect:/staff/menus/" + menuId;
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, ERROR_ADD_MENU_ITEM + e.getMessage());
+            return REDIRECT_STAFF_MENUS + menuId;
         }
     }
 
@@ -325,34 +372,34 @@ public class StaffRestaurantController {
         // Validate restaurant exists
         var restaurantOpt = restaurantService.getRestaurantById(restaurantId);
         if (restaurantOpt.isEmpty()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Restaurant not found");
-            return "redirect:/staff/restaurants";
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, ERROR_RESTAURANT_NOT_FOUND);
+            return REDIRECT_STAFF_RESTAURANTS;
         }
         
         // Validate menu exists
         var menuOpt = menuService.getMenuById(menuId);
         if (menuOpt.isEmpty()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Menu not found");
-            return "redirect:/staff/restaurants/" + restaurantId;
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, ERROR_MENU_NOT_FOUND);
+            return REDIRECT_STAFF_RESTAURANT_ID + restaurantId;
         }
         
         Menu menu = menuOpt.get();
         
         // Validate menu belongs to restaurant
         if (!menu.getRestaurant().getId().equals(restaurantId)) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Menu does not belong to this restaurant");
-            return "redirect:/staff/restaurants/" + restaurantId;
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, ERROR_MENU_NOT_BELONG_RESTAURANT);
+            return REDIRECT_STAFF_RESTAURANT_ID + restaurantId;
         }
         
         // Create a new menu item
         MenuItem menuItem = new MenuItem();
         
-        model.addAttribute("menuItem", menuItem);
-        model.addAttribute("menu", menu);
-        model.addAttribute("restaurant", restaurantOpt.get());
-        model.addAttribute("pageTitle", "Add Menu Item - Staff Dashboard");
+        model.addAttribute(ATTR_MENU_ITEM, menuItem);
+        model.addAttribute(ATTR_MENU, menu);
+        model.addAttribute(ATTR_RESTAURANT, restaurantOpt.get());
+        model.addAttribute(ATTR_PAGE_TITLE, "Add Menu Item - Staff Dashboard");
         
-        return "pages/staff/menu-item-form";
+        return VIEW_MENU_ITEM_FORM;
     }
 
     @PostMapping("/{restaurantId}/menus/{menuId}/items/{itemId}/delete")
@@ -366,31 +413,31 @@ public class StaffRestaurantController {
             // Validate the menu item exists
             var menuItemOpt = menuService.getMenuItemById(itemId);
             if (menuItemOpt.isEmpty()) {
-                redirectAttributes.addFlashAttribute("errorMessage", "Menu item not found");
-                return "redirect:/staff/menus/" + menuId;
+                redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, ERROR_MENU_ITEM_NOT_FOUND);
+                return REDIRECT_STAFF_MENUS + menuId;
             }
             
             // Validate the menu item belongs to the correct menu and restaurant
             MenuItem menuItem = menuItemOpt.get();
             if (menuItem.getMenu() == null || !menuItem.getMenu().getId().equals(menuId)) {
-                redirectAttributes.addFlashAttribute("errorMessage", "Menu item does not belong to this menu");
-                return "redirect:/staff/menus/" + menuId;
+                redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, ERROR_MENU_ITEM_NOT_BELONG_MENU);
+                return REDIRECT_STAFF_MENUS + menuId;
             }
             
             if (menuItem.getMenu().getRestaurant() == null || !menuItem.getMenu().getRestaurant().getId().equals(restaurantId)) {
-                redirectAttributes.addFlashAttribute("errorMessage", "Menu item does not belong to this restaurant");
-                return "redirect:/staff/restaurants/" + restaurantId;
+                redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, ERROR_MENU_ITEM_NOT_BELONG_RESTAURANT);
+                return REDIRECT_STAFF_RESTAURANT_ID + restaurantId;
             }
             
             // Delete the menu item
             menuService.deleteMenuItem(itemId);
             
-            redirectAttributes.addFlashAttribute("successMessage", "Menu item deleted successfully");
+            redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MESSAGE, SUCCESS_MENU_ITEM_DELETED);
         } catch (Exception e) {
             logger.error("Error deleting menu item: {}", e.getMessage(), e);
-            redirectAttributes.addFlashAttribute("errorMessage", "Failed to delete menu item: " + e.getMessage());
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, ERROR_DELETE_MENU_ITEM + e.getMessage());
         }
         
-        return "redirect:/staff/menus/" + menuId;
+        return REDIRECT_STAFF_MENUS + menuId;
     }
 }
