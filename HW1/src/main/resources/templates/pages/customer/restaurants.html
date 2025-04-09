@@ -64,10 +64,10 @@
             </div>
             
             <!-- Right column: Restaurant details -->
-            <div class="col-span-2">
+            <div class="col-span-2 bg-base-100 rounded-box shadow-md">
                 <div th:each="restaurant, iterStat : ${restaurants}" 
                      th:id="'restaurant-details-' + ${restaurant.id}"
-                     th:class="${iterStat.first ? 'restaurant-info card bg-base-200 shadow-xl' : 'restaurant-info card bg-base-100 shadow-xl hidden'}">
+                     th:class="${iterStat.first ? 'restaurant-info card shadow-xl' : 'restaurant-info card shadow-xl hidden'}">
                     
                     <figure class="px-4 pt-4">
                         <img src="/images/restaurant-placeholder.jpg" class="rounded-xl h-48 w-full object-cover" alt="Restaurant" />

@@ -85,47 +85,64 @@ public class CustomerRestaurantController {
 
     @GetMapping("/restaurant/{id}")
     public String getRestaurant(@PathVariable Long id, Model model) {
-        var restaurantOpt = restaurantService.getRestaurantById(id);
-        if (restaurantOpt.isEmpty()) {
+        try {
+            Restaurant restaurant = restaurantService.getRestaurantById(id)
+                .orElse(null);
+                
+            if (restaurant == null) {
+                model.addAttribute("errorMessage", "Restaurant not found");
+                return "redirect:/customer/restaurants";
+            }
+            
+            // Add restaurant to model
+            model.addAttribute("restaurant", restaurant);
+            
+            // Get today's menus
+            LocalDate today = LocalDate.now();
+            List<Menu> todaysMenus = new ArrayList<>();
+            try {
+                Menu todayMenu = menuService.getMenuByDate(id, today);
+                if (todayMenu != null) {
+                    todaysMenus.add(todayMenu);
+                }
+            } catch (Exception e) {
+                // No menu found for today, that's okay
+            }
+            model.addAttribute("todaysMenus", todaysMenus);
+            
+            // Get upcoming menus (excluding today)
+            List<Menu> upcomingMenus = new ArrayList<>();
+            try {
+                upcomingMenus = menuService.getMenusForUpcomingDays(id, 14)
+                    .stream()
+                    .filter(menu -> !menu.getDate().isEqual(today))
+                    .collect(Collectors.toList());
+            } catch (Exception e) {
+                // No upcoming menus, that's okay
+            }
+            model.addAttribute("upcomingMenus", upcomingMenus);
+            
+            // Add breadcrumbs
+            List<Map<String, String>> breadcrumbs = new ArrayList<>();
+            Map<String, String> restaurantsCrumb = new HashMap<>();
+            restaurantsCrumb.put("label", "Restaurants");
+            restaurantsCrumb.put("url", "/customer/restaurants");
+            
+            Map<String, String> thisCrumb = new HashMap<>();
+            thisCrumb.put("label", restaurant.getName());
+            thisCrumb.put("url", null);
+            
+            breadcrumbs.add(restaurantsCrumb);
+            breadcrumbs.add(thisCrumb);
+            
+            model.addAttribute("breadcrumbs", breadcrumbs);
+            model.addAttribute("pageTitle", restaurant.getName() + " - Moliceiro Meals");
+            
+            return "pages/customer/restaurant-details";
+        } catch (Exception e) {
+            e.printStackTrace();
+            model.addAttribute("errorMessage", "Error retrieving restaurant details: " + e.getMessage());
             return "redirect:/customer/restaurants";
         }
-        
-        Restaurant restaurant = restaurantOpt.get();
-        
-        // Add breadcrumbs
-        List<Map<String, String>> breadcrumbs = new ArrayList<>();
-        breadcrumbs.add(Map.of("label", "Restaurants", "url", "/customer/restaurants"));
-        breadcrumbs.add(Map.of("label", restaurant.getName(), "url", null));
-        
-        // Get today's menu safely
-        LocalDate today = LocalDate.now();
-        List<Menu> todaysMenus = new ArrayList<>();
-        try {
-            Menu todayMenu = menuService.getMenuByDate(id, today);
-            todaysMenus.add(todayMenu);
-        } catch (Exception e) {
-            // No menu for today, leave the list empty
-        }
-        
-        // Get upcoming menus safely
-        List<Menu> upcomingMenus = new ArrayList<>();
-        try {
-            upcomingMenus = menuService.getMenusForUpcomingDays(id, 7);
-            // Remove today's menu from upcoming if it exists
-            upcomingMenus = upcomingMenus.stream()
-                .filter(menu -> !menu.getDate().equals(today))
-                .collect(Collectors.toList());
-        } catch (Exception e) {
-            // No upcoming menus
-        }
-        
-        model.addAttribute("restaurant", restaurant);
-        model.addAttribute("breadcrumbs", breadcrumbs);
-        model.addAttribute("pageTitle", restaurant.getName() + " - Moliceiro Meals");
-        model.addAttribute("todaysMenus", todaysMenus);
-        model.addAttribute("upcomingMenus", upcomingMenus);
-        model.addAttribute("showReservationBtn", true);
-        
-        return "pages/customer/restaurant-details";
     }
 }
