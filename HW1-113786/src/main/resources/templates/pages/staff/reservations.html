@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html 
+    xmlns:th="http://www.thymeleaf.org"
+    xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layouts/staff-layout}"
+    xml:lang="en"
+>
+<head>
+    <title>Reservations - Staff Dashboard</title>
+    <style>
+        .reservation-card:hover {
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+        .active-filter {
+            background-color: rgba(0, 128, 0, 0.1);
+            border: 1px solid rgba(0, 128, 0, 0.3);
+            border-radius: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <section layout:fragment="content">
+        <!-- Alerts for success/error messages -->
+        <div th:if="${successMessage}" class="alert alert-success mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span th:text="${successMessage}">Success message here</span>
+        </div>
+        
+        <div th:if="${errorMessage}" class="alert alert-error mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span th:text="${errorMessage}">Error message here</span>
+        </div>
+
+        <h1 class="text-3xl font-bold mb-6">
+            <span th:if="${restaurant != null}">Reservations for <span th:text="${restaurant.name}">Restaurant Name</span></span>
+            <span th:unless="${restaurant != null}">All Reservations</span>
+        </h1>
+
+        <!-- Active Filter Indicators -->
+        <div class="flex flex-wrap gap-2 mb-6" 
+             th:if="${dateFilter != null || statusFilter != null || searchQuery != null}">
+            <div class="text-sm font-semibold mr-2 py-1">Active Filters:</div>
+            
+            <div class="badge badge-lg badge-outline gap-2" th:if="${dateFilter != null}">
+                <span>Date: </span>
+                <span th:text="${#temporals.format(dateFilter, 'MMM d, yyyy')}">Apr 10, 2025</span>
+                <a th:href="@{/staff/reservations}" class="ml-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </a>
+            </div>
+            
+            <div class="badge badge-lg badge-outline gap-2" th:if="${statusFilter != null}">
+                <span>Status: </span>
+                <span th:text="${statusFilter}">PENDING</span>
+                <a th:href="@{/staff/reservations}" class="ml-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </a>
+            </div>
+            
+            <div class="badge badge-lg badge-outline gap-2" th:if="${searchQuery != null}">
+                <span>Search: </span>
+                <span th:text="${searchQuery}">John</span>
+                <a th:href="@{/staff/reservations}" class="ml-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </a>
+            </div>
+            
+            <a th:href="@{/staff/reservations}" class="btn btn-sm btn-outline ml-auto">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Clear All Filters
+            </a>
+        </div>
+
+        <!-- Filter controls -->
+        <div class="card bg-base-100 shadow-xl mb-8">
+            <div class="card-body">
+                <h2 class="card-title text-xl mb-4">Filter Reservations</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Date filter -->
+                    <div th:class="${dateFilter != null ? 'active-filter p-2' : ''}">
+                        <form th:action="@{/staff/reservations}" method="get">
+                            <div class="form-control">
+                                <label class="label" for="dateFilter">
+                                    <span class="label-text">Filter by Date</span>
+                                </label>
+                                <div class="flex gap-2">
+                                    <input type="date" name="date" class="input input-bordered flex-grow"
+                                           th:value="${dateFilter != null ? #temporals.format(dateFilter, 'yyyy-MM-dd') : ''}">
+                                    <button type="submit" class="btn btn-primary">Filter</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Status filter -->
+                    <div th:class="${statusFilter != null ? 'active-filter p-2' : ''}">
+                        <form th:action="@{/staff/reservations}" method="get">
+                            <div class="form-control">
+                                <label class="label" for="statusFilter">
+                                    <span class="label-text">Filter by Status</span>
+                                </label>
+                                <div class="flex gap-2">
+                                    <select name="status" class="select select-bordered flex-grow">
+                                        <option value="">All statuses</option>
+                                        <option value="PENDING" th:selected="${statusFilter == 'PENDING'}">Pending</option>
+                                        <option value="CONFIRMED" th:selected="${statusFilter == 'CONFIRMED'}">Confirmed</option>
+                                        <option value="CHECKED_IN" th:selected="${statusFilter == 'CHECKED_IN'}">Checked In</option>
+                                        <option value="COMPLETED" th:selected="${statusFilter == 'COMPLETED'}">Completed</option>
+                                        <option value="CANCELLED" th:selected="${statusFilter == 'CANCELLED'}">Cancelled</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-primary">Filter</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Customer search -->
+                    <div th:class="${searchQuery != null ? 'active-filter p-2' : ''}">
+                        <form th:action="@{/staff/reservations}" method="get">
+                            <div class="form-control">
+                                <label class="label" for="search">
+                                    <span class="label-text">Search Customer</span>
+                                </label>
+                                <div class="flex gap-2">
+                                    <input type="text" name="search" placeholder="Name, Email or Code" 
+                                           class="input input-bordered flex-grow"
+                                           th:value="${searchQuery}">
+                                    <button type="submit" class="btn btn-primary">Search</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Results Summary -->
+        <div class="alert alert-info mb-6" th:if="${dateFilter != null || statusFilter != null || searchQuery != null}">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <div>
+                <span class="font-bold">Showing filtered results: </span>
+                <span th:if="${dateFilter != null}" th:text="'Date: ' + ${#temporals.format(dateFilter, 'MMMM d, yyyy')}">Date: April 10, 2023</span>
+                <span th:if="${statusFilter != null}" th:text="'Status: ' + ${statusFilter}">Status: PENDING</span>
+                <span th:if="${searchQuery != null}" th:text="'Searching for: ' + ${searchQuery}">Searching for: John</span>
+            </div>
+        </div>
+
+        <!-- Pending Reservations -->
+        <div class="mb-10">
+            <h2 class="text-2xl font-bold mb-4">Pending Reservations</h2>
+            <div th:if="${pendingReservations != null && !pendingReservations.empty}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div th:each="reservation : ${pendingReservations}" class="card bg-base-100 shadow-md reservation-card">
+                    <div class="card-body">
+                        <div class="flex justify-between items-start">
+                            <h3 class="font-bold">
+                                <span th:text="${reservation.customerName}">John Doe</span>
+                            </h3>
+                            <div class="badge badge-warning" th:text="${reservation.status}">PENDING</div>
+                        </div>
+                        <p class="font-mono text-sm" th:text="'Code: ' + ${reservation.token}">ABC12345</p>
+                        <p th:text="'Party: ' + ${reservation.partySize} + ' ' + (${reservation.partySize == 1 ? 'person' : 'people'})">4 people</p>
+                        <p class="font-semibold" th:text="${#temporals.format(reservation.reservationTime, 'MMMM d, yyyy')}">April 10, 2023</p>
+                        <p th:text="${#temporals.format(reservation.reservationTime, 'h:mm a')}">7:30 PM</p>
+                        
+                        <div class="card-actions justify-end mt-4">
+                            <a th:href="@{/staff/reservations/{id}(id=${reservation.id})}" class="btn btn-sm">
+                                View Details
+                            </a>
+                            <form th:action="@{/staff/reservations/{id}/confirm(id=${reservation.id})}" method="post">
+                                <button type="submit" class="btn btn-success btn-sm">Confirm</button>
+                            </form>
+                            <form th:action="@{/staff/reservations/{id}/cancel(id=${reservation.id})}" method="post">
+                                <button type="submit" class="btn btn-error btn-sm">Cancel</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p th:if="${pendingReservations == null || pendingReservations.empty}" class="text-gray-500 p-4 bg-base-200 rounded-lg text-center">
+                No pending reservations.
+            </p>
+        </div>
+
+        <!-- Confirmed Reservations -->
+        <div class="mb-10">
+            <h2 class="text-2xl font-bold mb-4">Confirmed Reservations</h2>
+            <div th:if="${activeReservations != null && !activeReservations.empty}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div th:each="reservation : ${activeReservations}" class="card bg-base-100 shadow-md reservation-card">
+                    <div class="card-body">
+                        <div class="flex justify-between items-start">
+                            <h3 class="font-bold">
+                                <span th:text="${reservation.customerName}">John Doe</span>
+                            </h3>
+                            <div class="badge badge-success" th:text="${reservation.status}">CONFIRMED</div>
+                        </div>
+                        <p class="font-mono text-sm" th:text="'Code: ' + ${reservation.token}">ABC12345</p>
+                        <p th:text="'Party: ' + ${reservation.partySize} + ' ' + (${reservation.partySize == 1 ? 'person' : 'people'})">4 people</p>
+                        <p class="font-semibold" th:text="${#temporals.format(reservation.reservationTime, 'MMMM d, yyyy')}">April 10, 2023</p>
+                        <p th:text="${#temporals.format(reservation.reservationTime, 'h:mm a')}">7:30 PM</p>
+                        
+                        <div class="card-actions justify-end mt-4">
+                            <a th:href="@{/staff/reservations/{id}(id=${reservation.id})}" class="btn btn-sm">
+                                View Details
+                            </a>
+                            <form th:action="@{/staff/reservations/{id}/check-in(id=${reservation.id})}" method="post">
+                                <button type="submit" class="btn btn-primary btn-sm">Check In</button>
+                            </form>
+                            <form th:action="@{/staff/reservations/{id}/cancel(id=${reservation.id})}" method="post">
+                                <button type="submit" class="btn btn-error btn-sm">Cancel</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p th:if="${activeReservations == null || activeReservations.empty}" class="text-gray-500 p-4 bg-base-200 rounded-lg text-center">
+                No confirmed reservations.
+            </p>
+        </div>
+
+        <!-- Checked-In Reservations -->
+        <div class="mb-10">
+            <h2 class="text-2xl font-bold mb-4">Checked-In Guests</h2>
+            <div th:if="${checkedInReservations != null && !checkedInReservations.empty}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div th:each="reservation : ${checkedInReservations}" class="card bg-base-100 shadow-md reservation-card">
+                    <div class="card-body">
+                        <div class="flex justify-between items-start">
+                            <h3 class="font-bold">
+                                <span th:text="${reservation.customerName}">John Doe</span>
+                            </h3>
+                            <div class="badge badge-info" th:text="${reservation.status}">CHECKED_IN</div>
+                        </div>
+                        <p class="font-mono text-sm" th:text="'Code: ' + ${reservation.token}">ABC12345</p>
+                        <p th:text="'Party: ' + ${reservation.partySize} + ' ' + (${reservation.partySize == 1 ? 'person' : 'people'})">4 people</p>
+                        <p class="font-semibold" th:text="${#temporals.format(reservation.reservationTime, 'MMMM d, yyyy')}">April 10, 2023</p>
+                        <p th:text="${#temporals.format(reservation.reservationTime, 'h:mm a')}">7:30 PM</p>
+                        
+                        <div class="card-actions justify-end mt-4">
+                            <a th:href="@{/staff/reservations/{id}(id=${reservation.id})}" class="btn btn-sm">
+                                View Details
+                            </a>
+                            <form th:action="@{/staff/reservations/{id}/complete(id=${reservation.id})}" method="post">
+                                <button type="submit" class="btn btn-neutral btn-sm">Complete</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p th:if="${checkedInReservations == null || checkedInReservations.empty}" class="text-gray-500 p-4 bg-base-200 rounded-lg text-center">
+                No checked-in guests.
+            </p>
+        </div>
+
+        <!-- Completed Reservations - Limited to most recent -->
+        <div class="mb-10">
+            <h2 class="text-2xl font-bold mb-4">Recently Completed</h2>
+            <div th:if="${completedReservations != null && !completedReservations.empty}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div th:each="reservation : ${completedReservations}" class="card bg-base-100 shadow-md reservation-card">
+                    <div class="card-body">
+                        <div class="flex justify-between items-start">
+                            <h3 class="font-bold">
+                                <span th:text="${reservation.customerName}">John Doe</span>
+                            </h3>
+                            <div class="badge badge-secondary" th:text="${reservation.status}">COMPLETED</div>
+                        </div>
+                        <p class="font-mono text-sm" th:text="'Code: ' + ${reservation.token}">ABC12345</p>
+                        <p th:text="'Party: ' + ${reservation.partySize} + ' ' + (${reservation.partySize == 1 ? 'person' : 'people'})">4 people</p>
+                        <p class="font-semibold" th:text="${#temporals.format(reservation.reservationTime, 'MMMM d, yyyy')}">April 10, 2023</p>
+                        <p th:text="${#temporals.format(reservation.reservationTime, 'h:mm a')}">7:30 PM</p>
+                        
+                        <div class="card-actions justify-end mt-4">
+                            <a th:href="@{/staff/reservations/{id}(id=${reservation.id})}" class="btn btn-sm">
+                                View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p th:if="${completedReservations == null || completedReservations.empty}" class="text-gray-500 p-4 bg-base-200 rounded-lg text-center">
+                No completed reservations.
+            </p>
+        </div>
+    </section>
+</body>
+</html>

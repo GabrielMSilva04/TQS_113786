@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html 
+    xmlns:th="http://www.thymeleaf.org"
+    xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    xml:lang="en"
+    data-theme="winter"
+>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle ?: 'Moliceiro Meals'}">Moliceiro Meals</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5/themes.css" rel="stylesheet" type="text/css" />
+</head>
+<body class="bg-base-100">
+    <!-- Navigation -->
+    <div th:replace="~{fragments/default-navigation :: defaultNavigation}"></div>
+    
+    <!-- Main content -->
+    <main class="container mx-auto py-8 px-4 flex-grow">
+        <section layout:fragment="content">
+            <!-- Page content will be inserted here -->
+        </section>
+    </main>
+    
+    <!-- Footer -->
+    <footer class="footer footer-center p-4 bg-base-300 text-base-content">
+        <div>
+            <p>© 2025 Moliceiro Meals</p>
+        </div>
+    </footer>
+</body>
+</html>

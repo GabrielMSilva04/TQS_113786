@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html 
+    xmlns:th="http://www.thymeleaf.org"
+    xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layouts/staff-layout}"
+    xml:lang="en"
+>
+<head>
+    <title th:text="${restaurant.id != null ? 'Edit Restaurant - Staff Dashboard' : 'Add New Restaurant - Staff Dashboard'}">Restaurant Form - Staff Dashboard</title>
+</head>
+<body>
+    <section layout:fragment="content">
+        <div class="mb-6">
+            <a href="/staff/restaurants" class="btn btn-outline btn-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back to All Restaurants
+            </a>
+        </div>
+        
+        <!-- Alerts for error messages -->
+        <div th:if="${errorMessage}" class="alert alert-error mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span th:text="${errorMessage}">Error message here</span>
+        </div>
+        
+        <h1 class="text-3xl font-bold mb-6" th:text="${restaurant.id != null ? 'Edit Restaurant: ' + restaurant.name : 'Add New Restaurant'}">
+            Add/Edit Restaurant
+        </h1>
+        
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <form th:action="${restaurant.id != null ? '/staff/restaurants/' + restaurant.id + '/update' : '/staff/restaurants/create'}" 
+                      method="post" 
+                      th:object="${restaurant}">
+                    
+                    <!-- Hidden ID field for updates -->
+                    <input type="hidden" th:if="${restaurant.id != null}" th:field="*{id}" />
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Restaurant Name -->
+                        <div class="form-control">
+                            <label class="label" for="restaurantName">
+                                <span class="label-text">Restaurant Name*</span>
+                            </label>
+                            <input type="text" id="restaurantName" th:field="*{name}" placeholder="Enter restaurant name" 
+                                   class="input input-bordered w-full" required 
+                                   th:classappend="${#fields.hasErrors('name')} ? 'input-error' : ''">
+                            <label class="label" th:if="${#fields.hasErrors('name')}" for="restaurantName">
+                                <span class="label-text-alt text-error" th:errors="*{name}">Name error</span>
+                            </label>
+                        </div>
+                        
+                        <!-- Location -->
+                        <div class="form-control">
+                            <label class="label" for="restaurantLocation">
+                                <span class="label-text">Location*</span>
+                            </label>
+                            <input type="text" id="restaurantLocation" th:field="*{location}" placeholder="Enter location" 
+                                   class="input input-bordered w-full" required
+                                   th:classappend="${#fields.hasErrors('location')} ? 'input-error' : ''">
+                            <label class="label" th:if="${#fields.hasErrors('location')}" for="restaurantLocation">
+                                <span class="label-text-alt text-error" th:errors="*{location}">Location error</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Contact Information -->
+                    <div class="form-control mt-4">
+                        <label class="label" for="restaurantContactInfo">
+                            <span class="label-text">Contact Information</span>
+                        </label>
+                        <input type="text" id="restaurantContactInfo" th:field="*{contactInfo}" placeholder="Enter phone number or email" 
+                               class="input input-bordered w-full"
+                               th:classappend="${#fields.hasErrors('contactInfo')} ? 'input-error' : ''">
+                        <label class="label" th:if="${#fields.hasErrors('contactInfo')}" for="restaurantContactInfo">
+                            <span class="label-text-alt text-error" th:errors="*{contactInfo}">Contact info error</span>
+                        </label>
+                    </div>
+                    
+                    <!-- Description -->
+                    <div class="form-control mt-4">
+                        <label class="label" for="restaurantDescription">
+                            <span class="label-text">Description*</span>
+                        </label>
+                        <textarea id="restaurantDescription" th:field="*{description}" placeholder="Enter restaurant description" 
+                                  class="textarea textarea-bordered h-32" required
+                                  th:classappend="${#fields.hasErrors('description')} ? 'textarea-error' : ''"></textarea>
+                        <label class="label" th:if="${#fields.hasErrors('description')}" for="restaurantDescription">
+                            <span class="label-text-alt text-error" th:errors="*{description}">Description error</span>
+                        </label>
+                    </div>
+                    
+                    <!-- Additional Fields (can be added as needed) -->
+                    
+                    <div class="divider">Restaurant Image</div>
+                    
+                    <!-- Image Upload (note: actual file upload implementation would require additional backend logic) -->
+                    <div class="form-control">
+                        <label class="label" for="restaurantImage">
+                            <span class="label-text">Restaurant Image (Optional)</span>
+                        </label>
+                        <input type="file" class="file-input file-input-bordered w-full" disabled>
+                        <p class="text-sm text-gray-500 mt-2">Image upload functionality coming soon.</p>
+                    </div>
+                    
+                    <!-- Submit Buttons -->
+                    <div class="form-control mt-8">
+                        <div class="flex justify-end gap-4">
+                            <a href="/staff/restaurants" class="btn btn-outline">Cancel</a>
+                            <button type="submit" class="btn btn-primary">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                                <span th:text="${restaurant.id != null ? 'Update Restaurant' : 'Create Restaurant'}">Save</span>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html 
+    xmlns:th="http://www.thymeleaf.org"
+    xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layouts/customer-layout}"
+    xml:lang="en"
+>
+<head>
+    <title th:text="${pageTitle ?: 'Check Reservation - Moliceiro Meals'}">Check Reservation - Moliceiro Meals</title>
+</head>
+<body>
+    <section layout:fragment="content">
+        <h1 class="text-3xl font-bold mb-6">Check Your Reservation</h1>
+        
+        <!-- Alerts for error messages -->
+        <div th:if="${errorMessage}" class="alert alert-error mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span th:text="${errorMessage}">Error message here</span>
+        </div>
+        
+        <!-- Breadcrumbs navigation -->
+        <div class="text-sm breadcrumbs mb-6" th:if="${breadcrumbs != null}">
+            <ul>
+                <li th:each="crumb : ${breadcrumbs}">
+                    <a th:if="${crumb.url != null}" th:href="${crumb.url}" th:text="${crumb.label}">Breadcrumb</a>
+                    <span th:unless="${crumb.url != null}" th:text="${crumb.label}">Breadcrumb</span>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title mb-4">Enter Your Reservation Code</h2>
+                <p class="mb-4">Please enter the reservation code you received in your confirmation email or SMS.</p>
+                
+                <form th:action="@{/customer/reservation}" method="get" class="mt-4">
+                    <div class="form-control">
+                        <label class="label" for="code">
+                            <span class="label-text">Reservation Code*</span>
+                        </label>
+                        <input type="text" name="code" placeholder="Enter code (e.g., ABC12345)" 
+                               class="input input-bordered w-full" required>
+                        <label class="label" for="code">
+                            <span class="label-text-alt text-gray-500">You can find your code in your confirmation email</span>
+                        </label>
+                    </div>
+                    
+                    <div class="form-control mt-6">
+                        <button type="submit" class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            Check Reservation
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="divider text-gray-500 my-8">OR</div>
+                
+                <h3 class="text-lg font-semibold mb-4">Find Reservations by Email</h3>
+                <p class="mb-4">You can also look up all your reservations by entering your email.</p>
+                
+                <a href="/customer/reservation/s" class="btn btn-outline btn-block">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                              d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    View Email Lookup
+                </a>
+            </div>
+        </div>
+    </section>
+</body>
+</html>

@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html 
+    xmlns:th="http://www.thymeleaf.org"
+    xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layouts/staff-layout}"
+    xml:lang="en"
+>
+<head>
+    <title th:text="${restaurant.name} + ' - Staff Dashboard'">Restaurant Details - Staff Dashboard</title>
+</head>
+<body>
+    <section layout:fragment="content">
+        <div class="mb-6">
+            <a href="/staff/restaurants" class="btn btn-outline btn-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back to All Restaurants
+            </a>
+        </div>
+        
+        <!-- Alerts for success/error messages -->
+        <div th:if="${successMessage}" class="alert alert-success mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span th:text="${successMessage}">Success message here</span>
+        </div>
+        
+        <div th:if="${errorMessage}" class="alert alert-error mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span th:text="${errorMessage}">Error message here</span>
+        </div>
+        
+        <!-- Restaurant Details -->
+        <div class="flex flex-col md:flex-row gap-6 mb-8">
+            <!-- Left side: Restaurant image -->
+            <div class="md:w-1/3">
+                <img src="/images/restaurant-placeholder.jpg" class="w-full h-64 md:h-full object-cover rounded-xl shadow-md" alt="Restaurant" />
+                
+                <div class="mt-4 flex gap-2">
+                    <a th:href="@{/staff/restaurants/{id}/edit(id=${restaurant.id})}" class="btn btn-warning flex-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                        </svg>
+                        Edit Details
+                    </a>
+                    <a th:href="@{/staff/restaurants/{id}/menus(id=${restaurant.id})}" class="btn btn-info flex-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                        Manage Menus
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Right side: Details -->
+            <div class="md:w-2/3">
+                <div class="flex justify-between items-start">
+                    <h1 class="text-3xl font-bold mb-2" th:text="${restaurant.name}">Restaurant Name</h1>
+                    <div class="badge badge-lg badge-accent">Active</div>
+                </div>
+                
+                <p class="text-gray-600 mb-6" th:text="${restaurant.description}">Restaurant description goes here, providing more details about this establishment, its cuisine, ambiance, and other notable features.</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div class="card bg-base-100 border border-base-300">
+                        <div class="card-body p-4">
+                            <h2 class="card-title text-xl">Location & Contact</h2>
+                            <p><strong>Address:</strong> <span th:text="${restaurant.location}">123 Main St, Aveiro</span></p>
+                            <p><strong>Contact:</strong> <span th:text="${restaurant.contactInfo ?: 'Not provided'}">+351 123 456 789</span></p>
+                        </div>
+                    </div>
+                    
+                    <div class="card bg-base-100 border border-base-300">
+                        <div class="card-body p-4">
+                            <h2 class="card-title text-xl">Statistics</h2>
+                            <p><strong>Total Menus:</strong> <span th:text="${restaurant.menus?.size() ?: 0}">12</span></p>
+                            <p><strong>Total Reservations:</strong> <span th:text="${restaurant.reservations?.size() ?: 0}">142</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Menu and Reservations Tabs -->
+        <div role="tablist" class="tabs tabs-border w-full mb-4 pt-10">
+            <input type="radio" name="restaurant_tabs" role="tab" class="tab" aria-label="Today's Menu" checked />
+            <div role="tabpanel" class="tab-content p-4">
+                <div class="card bg-base-100 border border-base-300">
+                    <div class="card-body">
+                        <div class="flex justify-between mb-4">
+                            <h2 class="text-2xl font-bold">Today's Menu</h2>
+                            <a th:href="@{/staff/restaurants/{id}/menus/create(id=${restaurant.id}, date=${T(java.time.LocalDate).now()})}" class="btn btn-primary btn-sm">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                                Add Menu for Today
+                            </a>
+                        </div>
+                        
+                        <!-- Today's Menu Cards -->
+                        <div th:if="${todayMenus != null && !todayMenus.isEmpty()}" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div th:each="menu : ${todayMenus}" class="card bg-base-200">
+                                <div class="card-body">
+                                    <div class="flex justify-between mb-2">
+                                        <h3 class="card-title" th:text="${menu.name}">Lunch Special</h3>
+                                        <div class="badge badge-primary">Today</div>
+                                    </div>
+                                    <p th:text="${menu.description}">Daily lunch special with seasonal ingredients.</p>
+                                    
+                                    <div class="divider my-2">Items</div>
+                                    
+                                    <div th:if="${menu.items != null && !menu.items.isEmpty()}" class="space-y-2">
+                                        <p><span class="font-semibold" th:text="${menu.items.size()}">12</span> menu items</p>
+                                    </div>
+                                    <div th:unless="${menu.items != null && !menu.items.isEmpty()}" class="text-gray-500">
+                                        No items added to this menu
+                                    </div>
+                                    
+                                    <div class="card-actions justify-end mt-4">
+                                        <a th:href="@{/staff/menus/{id}(id=${menu.id})}" class="btn btn-sm btn-info">View Details</a>
+                                        <a th:href="@{/staff/menus/{id}/edit(id=${menu.id})}" class="btn btn-sm btn-warning">Edit Menu</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- No menu message -->
+                        <div th:if="${todayMenus == null || todayMenus.isEmpty()}" class="p-10 text-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            </svg>
+                            <h3 class="text-lg font-semibold text-gray-600 mb-2">No menu available for today</h3>
+                            <p class="text-gray-500 mb-4">Create a new menu to showcase today's offerings.</p>
+                            <a th:href="@{/staff/restaurants/{id}/menus/create(id=${restaurant.id}, date=${T(java.time.LocalDate).now()})}" class="btn btn-primary">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                                Create Today's Menu
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <input type="radio" name="restaurant_tabs" role="tab" class="tab" aria-label="Upcoming Menus" />
+            <div role="tabpanel" class="tab-content p-4">
+                <div class="card bg-base-100 border border-base-300">
+                    <div class="card-body">
+                        <div class="flex justify-between mb-4">
+                            <h2 class="text-2xl font-bold">Upcoming Menus</h2>
+                            <a th:href="@{/staff/restaurants/{id}/menus/create(id=${restaurant.id})}" class="btn btn-primary btn-sm">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                                Add New Menu
+                            </a>
+                        </div>
+                        
+                        <!-- Upcoming Menus Table -->
+                        <div class="overflow-x-auto">
+                            <table class="table w-full">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Menu</th>
+                                        <th>Description</th>
+                                        <th>Items</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="menu : ${upcomingMenus}" th:if="${upcomingMenus != null && !upcomingMenus.isEmpty()}">
+                                        <td th:text="${#temporals.format(menu.date, 'EEE, MMM d, yyyy')}">Mon, Apr 15, 2023</td>
+                                        <td th:text="${menu.name}">Weekend Special</td>
+                                        <td th:text="${menu.description?.length() > 40 ? menu.description.substring(0, 40) + '...' : menu.description}">Special weekend menu with...</td>
+                                        <td th:text="${menu.items?.size() ?: 0}">8</td>
+                                        <td>
+                                            <div class="flex gap-2">
+                                                <a th:href="@{/staff/menus/{id}(id=${menu.id})}" class="btn btn-sm btn-info">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                    </svg>
+                                                </a>
+                                                <a th:href="@{/staff/menus/{id}/edit(id=${menu.id})}" class="btn btn-sm btn-warning">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                                    </svg>
+                                                </a>
+                                                <form th:action="@{/staff/menus/{id}/delete(id=${menu.id})}" method="post" onsubmit="return confirm('Are you sure you want to delete this menu?');">
+                                                    <button type="submit" class="btn btn-sm btn-error">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${upcomingMenus == null || upcomingMenus.isEmpty()}">
+                                        <td colspan="5" class="text-center py-8">
+                                            <div class="text-lg font-semibold text-gray-500">No upcoming menus found</div>
+                                            <p class="mt-2">Plan ahead by creating menus for future dates.</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <input type="radio" name="restaurant_tabs" role="tab" class="tab" aria-label="Recent Reservations" />
+            <div role="tabpanel" class="tab-content p-4">
+                <div class="card bg-base-100 border border-base-300">
+                    <div class="card-body">
+                        <div class="flex justify-between mb-4">
+                            <h2 class="text-2xl font-bold">Recent Reservations</h2>
+                            <a th:href="@{/staff/reservations(restaurantId=${restaurant.id})}" class="btn btn-primary btn-sm">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                                </svg>
+                                View All Reservations
+                            </a>
+                        </div>
+                        
+                        <!-- Recent Reservations Table -->
+                        <div class="overflow-x-auto">
+                            <table class="table w-full">
+                                <thead>
+                                    <tr>
+                                        <th>Code</th>
+                                        <th>Customer</th>
+                                        <th>Date & Time</th>
+                                        <th>Party Size</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="reservation : ${reservations}" th:if="${reservations != null && !reservations.isEmpty()}">
+                                        <td class="font-mono" th:text="${reservation.token}">ABC12345</td>
+                                        <td>
+                                            <div>
+                                                <div class="font-bold" th:text="${reservation.customerName}">John Doe</div>
+                                                <div class="text-sm opacity-50" th:text="${reservation.customerEmail}">john@example.com</div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div th:text="${#temporals.format(reservation.reservationTime, 'MMM d, yyyy')}">Apr 10, 2023</div>
+                                            <div class="text-sm font-bold" th:text="${#temporals.format(reservation.reservationTime, 'h:mm a')}">7:30 PM</div>
+                                        </td>
+                                        <td th:text="${reservation.partySize} + ' ' + (${reservation.partySize == 1 ? 'person' : 'people'})">4 people</td>
+                                        <td>
+                                            <span class="badge" 
+                                                  th:with="status=${reservation.status?.name()}"
+                                                  th:classappend="${
+                                                    status == 'PENDING' ? 'badge-warning' : 
+                                                    status == 'CONFIRMED' ? 'badge-success' :
+                                                    status == 'CHECKED_IN' ? 'badge-info' :
+                                                    status == 'COMPLETED' ? 'badge-secondary' :
+                                                    status == 'CANCELLED' ? 'badge-error' :
+                                                    'badge-ghost'
+                                                  }"
+                                                  th:text="${status}">
+                                                PENDING
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a th:href="@{/staff/reservations/{id}(id=${reservation.id})}" class="btn btn-sm btn-info">View</a>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${reservations == null || reservations.isEmpty()}">
+                                        <td colspan="6" class="text-center py-8">
+                                            <div class="text-lg font-semibold text-gray-500">No reservations found</div>
+                                            <p class="mt-2">This restaurant has no reservations yet.</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <script>
+            function openTab(evt, tabName) {
+                // Hide all tab contents
+                var tabContents = document.getElementsByClassName("tab-content");
+                for (const tabContent of tabContents) {
+                    tabContent.classList.add("hidden");
+                }
+                
+                // Remove active class from all tabs
+                var tabs = document.getElementsByClassName("tab");
+                for (const tab of tabs) {
+                    tab.classList.remove("tab-active");
+                }
+                
+                // Show the current tab and add active class to the button
+                document.getElementById(tabName).classList.remove("hidden");
+                evt.currentTarget.classList.add("tab-active");
+            }
+        </script>
+    </section>
+</body>
+</html>

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html 
+    xmlns:th="http://www.thymeleaf.org"
+    xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layouts/customer-layout}"
+    xml:lang="en"
+>
+<head>
+    <title th:text="${pageTitle ?: 'My Reservations - Moliceiro Meals'}">My Reservations - Moliceiro Meals</title>
+    <style>
+        .reservation-card {
+            transition: transform 0.2s;
+        }
+        .reservation-card:hover {
+            transform: translateY(-5px);
+        }
+    </style>
+</head>
+<body>
+    <section layout:fragment="content">
+        <h1 class="text-3xl font-bold mb-6">My Reservations</h1>
+        
+        <!-- Alerts for success/error messages -->
+        <div th:if="${successMessage}" class="alert alert-success mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span th:text="${successMessage}">Success message here</span>
+        </div>
+        
+        <div th:if="${errorMessage}" class="alert alert-error mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span th:text="${errorMessage}">Error message here</span>
+        </div>
+        
+        <div th:if="${infoMessage}" class="alert alert-info mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current flex-shrink-0 w-6 h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span th:text="${infoMessage}">Info message here</span>
+        </div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+            <!-- Check Reservation Card -->
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <h2 class="card-title text-xl mb-4">Check Reservation by Code</h2>
+                    <p class="mb-4">Enter your reservation code to view details or make changes.</p>
+                    
+                    <form th:action="@{/customer/reservation}" method="get" class="mt-2">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Reservation Code</span>
+                            </label>
+                            <div class="flex gap-2">
+                                <input type="text" name="code" placeholder="Enter code (e.g., ABC12345)" 
+                                       class="input input-bordered flex-grow" required>
+                                <button type="submit" class="btn btn-primary">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                    Check
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Find by Email Card -->
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <h2 class="card-title text-xl mb-4">Find Reservations by Email</h2>
+                    <p class="mb-4">Enter the email you used to make your reservations.</p>
+                    
+                    <form th:action="@{/customer/reservation/find-by-email}" method="get" class="mt-2">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Email Address</span>
+                            </label>
+                            <div class="flex gap-2">
+                                <input type="email" name="email" placeholder="Enter your email address" 
+                                       class="input input-bordered flex-grow" required>
+                                <button type="submit" class="btn btn-primary">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                              d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                    </svg>
+                                    Find
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Reservations Section -->
+        <div th:if="${reservations != null && !reservations.isEmpty()}" class="mb-12">
+            <h2 class="text-2xl font-bold mb-4">Your Reservations</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                <div th:each="reservation : ${reservations}" class="card bg-base-100 shadow-xl reservation-card">
+                    <div class="card-body">
+                        <div class="flex justify-between items-start">
+                            <h3 class="card-title">
+                                <span th:text="${reservation.restaurant != null ? reservation.restaurant.name : 'Unknown Restaurant'}">Restaurant Name</span>
+                            </h3>
+                            <div class="badge" 
+                                 th:with="status=${reservation.status?.name() ?: 'UNKNOWN'}"
+                                 th:classappend="${
+                                    status == 'PENDING' ? 'badge-warning' : 
+                                    status == 'CONFIRMED' ? 'badge-success' :
+                                    status == 'CHECKED_IN' ? 'badge-info' :
+                                    status == 'COMPLETED' ? 'badge-secondary' :
+                                    'badge-error'
+                                 }"
+                                 th:text="${status}">
+                                CONFIRMED
+                            </div>
+                        </div>
+                        
+                        <div class="mt-2">
+                            <p class="font-semibold">Reservation Code: <span class="font-mono" th:text="${reservation.token}">ABC12345</span></p>
+                            <p class="text-sm text-gray-600" th:text="${#temporals.format(reservation.reservationTime, 'EEEE, MMMM d, yyyy')}">Monday, April 10, 2023</p>
+                            <p class="text-sm text-gray-600" th:text="${#temporals.format(reservation.reservationTime, 'h:mm a')}">7:30 PM</p>
+                            <p class="mt-1" th:text="${reservation.partySize} + ' ' + (${reservation.partySize == 1 ? 'person' : 'people'})">4 people</p>
+                        </div>
+                        
+                        <div class="card-actions justify-end mt-4">
+                            <a th:href="@{/customer/reservation/{code}(code=${reservation.token})}" class="btn btn-primary btn-sm">
+                                View Details
+                            </a>
+                            <button th:with="status=${reservation.status?.name()}"
+                                    th:if="${status == 'PENDING' || status == 'CONFIRMED'}"
+                                    class="btn btn-outline btn-error btn-sm cancel-btn"
+                                    th:attr="data-code=${reservation.token}, 
+                                            data-restaurant=${reservation.restaurant != null ? reservation.restaurant.name : 'Unknown Restaurant'}">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- No reservations message -->
+        <div th:if="${reservations != null && reservations.isEmpty()}" class="alert alert-info mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span>You don't have any reservations yet. Ready to try one of our restaurants?</span>
+        </div>
+        
+        <!-- Make a new reservation card -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title">Ready to Make a Reservation?</h2>
+                <p>Browse our restaurants and book your next dining experience.</p>
+                <div class="card-actions justify-end mt-4">
+                    <a href="/customer/restaurants" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7m-7-7v14" />
+                        </svg>
+                        Browse Restaurants
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Confirmation modal for cancellations -->
+        <div class="modal" id="cancel-modal">
+            <div class="modal-box">
+                <h3 class="font-bold text-lg">Cancel Reservation</h3>
+                <p class="py-4">Are you sure you want to cancel your reservation at <span id="restaurant-name">Restaurant</span>?</p>
+                <p class="text-warning">This action cannot be undone.</p>
+                <div class="modal-action">
+                    <form id="cancel-form" method="post">
+                        <button type="submit" class="btn btn-error">Yes, Cancel Reservation</button>
+                    </form>
+                    <button class="btn" onclick="closeModal()">No, Keep Reservation</button>
+                </div>
+            </div>
+        </div>
+        
+        <script>
+            // Setup cancel buttons to trigger modal
+            document.addEventListener('DOMContentLoaded', function() {
+                const cancelBtns = document.querySelectorAll('.cancel-btn');
+                cancelBtns.forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const code = this.getAttribute('data-code');
+                        const restaurant = this.getAttribute('data-restaurant');
+                        
+                        document.getElementById('restaurant-name').textContent = restaurant;
+                        document.getElementById('cancel-form').action = `/customer/reservation/cancel/${code}`;
+                        document.getElementById('cancel-modal').classList.add('modal-open');
+                    });
+                });
+            });
+            
+            function closeModal() {
+                document.getElementById('cancel-modal').classList.remove('modal-open');
+            }
+        </script>
+    </section>
+</body>
+</html>

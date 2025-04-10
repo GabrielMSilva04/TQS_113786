@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html 
+    xmlns:th="http://www.thymeleaf.org"
+    xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    xml:lang="en"
+    data-theme="light"
+>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle ?: 'Customer - Moliceiro Meals'}">Customer - Moliceiro Meals</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5/themes.css" rel="stylesheet" type="text/css" />
+    <script th:src="@{/js/main.js}" defer></script>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link th:href="@{/css/styles.css}" rel="stylesheet">
+    <style>
+        .restaurant-card:hover {
+            transform: translateY(-5px);
+            transition: transform 0.3s ease;
+        }
+        .menu-item:hover {
+            background-color: rgba(0,0,0,0.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="flex flex-col min-h-screen">
+        <!-- Customer Navigation -->
+        <nav class="navbar bg-primary text-primary-content shadow-lg">
+            <div class="container mx-auto flex justify-between items-center">
+                <a href="/customer" class="btn btn-ghost normal-case text-xl">Moliceiro Meals</a>
+                <ul class="menu menu-horizontal px-4 space-x-4">
+                    <li><a href="/customer">Home</a></li>
+                    <li><a href="/customer/restaurants">Restaurants</a></li>
+                    <li><a href="/customer/reservations">My Reservations</a></li>
+                    <li><a href="/customer/menus">Today's Menus</a></li>
+                </ul>
+                <a href="/" class="btn btn-ghost btn-sm normal-case">
+                    <span class="mr-2">Switch View</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                    </svg>
+                </a>
+            </div>
+        </nav>
+        
+        <!-- Breadcrumbs for navigation context -->
+        <div class="container mx-auto pt-4" th:if="${breadcrumbs != null}">
+            <div class="text-sm breadcrumbs">
+                <ul>
+                    <li><a href="/customer">Home</a></li>
+                    <li th:each="crumb : ${breadcrumbs}">
+                        <a th:if="${crumb.url != null}" th:href="${crumb.url}" th:text="${crumb.label}"></a>
+                        <span th:unless="${crumb.url != null}" th:text="${crumb.label}"></span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <main class="container mx-auto py-6 px-4 flex-grow">
+            <section layout:fragment="content">
+                <!-- Page content will be inserted here -->
+            </section>
+        </main>
+        
+        <!-- Reservation Quick Access Drawer or Floating Button -->
+        <div class="toast toast-end z-50" th:if="${showReservationBtn}">
+            <div class="alert alert-info">
+                <div>
+                    <span>Ready to book a table?</span>
+                    <div>
+                        <a href="/customer/reservation/create" class="btn btn-sm btn-primary">Make Reservation</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer class="footer footer-center p-4 bg-base-300 text-base-content">
+            <div>
+                <p>Copyright © 2025 - Moliceiro Meals</p>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>
