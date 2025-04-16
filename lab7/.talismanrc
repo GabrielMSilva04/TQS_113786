@@ -1,4 +1,5 @@
-threshold: medium
+thresholds:
+  medium
 
 fileignoreconfig:
 - filename: lab7/k6-oss-workshop
