@@ -27,27 +27,12 @@ The primary reasons for passing the quality gate were the excellent test coverag
 
 ## h) External Static Analysis Tools in SonarQube
 
-SonarQube integrates with several external static analysis tools specifically for Java:
+SonarQube integrates with several specialized external static analysis tools for Java:
 
-### 1. Checkstyle
+**Checkstyle**: Focuses on enforcing coding standards and style conventions to ensure consistent code formatting across projects. It checks aspects like naming conventions, whitespace rules, and documentation requirements.
 
-- **Purpose**: Enforces coding standards and style conventions
-- **Focus Areas**: Code formatting, naming conventions, Javadoc, class design
-- **Strengths**: Highly configurable with detailed rules for code style consistency
-- **Example Rule**: Variable naming conventions, whitespace rules, line length limits
+**PMD (Programming Mistake Detector)**: Analyzes source code to identify potential bugs, inefficient code, and problematic patterns. PMD is particularly effective at finding unused variables, empty blocks, and unnecessary object creation.
 
-### 2. PMD (Programming Mistake Detector)
+**SpotBugs**: Works by analyzing bytecode rather than source code to detect potential bugs that might not be apparent from reading the source. It excels at finding null pointer issues, infinite recursion, and concurrency problems.
 
-- **Purpose**: Detects common programming flaws and potential bugs
-- **Focus Areas**: Unused variables, empty catch blocks, unnecessary object creation
-- **Strengths**: Identifies inefficient code patterns and potential bugs
-- **Example Rule**: Detecting unused variables, identifying overly complex methods
-
-### 3. SpotBugs (successor to FindBugs)
-
-- **Purpose**: Finds potential bugs through bytecode analysis
-- **Focus Areas**: Null pointer dereferences, infinite loops, thread synchronization
-- **Strengths**: Detects hard-to-find bugs that might not be apparent from source code
-- **Example Rule**: Identifying methods that might return null, unchecked exception handling
-
-These tools complement SonarQube's native analysis capabilities by providing specialized rule sets and detection algorithms. SonarQube integrates their findings into its unified reporting interface, allowing developers to address issues from multiple analysis tools through a single dashboard. Each tool has different strengths and focuses on different aspects of code quality, providing comprehensive coverage when used together.
+These tools complement SonarQube by providing specialized analyses that, when combined, offer comprehensive code quality assessment through a single unified interface.
