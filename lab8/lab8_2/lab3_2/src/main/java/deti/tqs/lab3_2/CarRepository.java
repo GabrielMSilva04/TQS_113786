@@ -15,4 +15,7 @@ public interface CarRepository extends JpaRepository<Car, Long> {
     List<Car> findAll();
     
     List<Car> findByCategoryAndAvailableAndCarIdNot(String category, boolean available, Long carId);
+    
+    // NEW METHOD: Find cars by category
+    List<Car> findByCategory(String category);
 }

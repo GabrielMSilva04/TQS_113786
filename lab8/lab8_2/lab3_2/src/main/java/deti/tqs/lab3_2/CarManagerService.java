@@ -41,4 +41,14 @@ public class CarManagerService {
 
         return replacements.stream().findFirst();
     }
+    
+    // NEW METHOD: Delete car
+    public void deleteCar(Long carId) {
+        carRepository.deleteById(carId);
+    }
+    
+    // NEW METHOD: Get cars by category
+    public List<Car> getCarsByCategory(String category) {
+        return carRepository.findByCategory(category);
+    }
 }
