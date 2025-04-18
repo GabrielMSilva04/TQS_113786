@@ -1,10 +1,6 @@
-# Code Quality Issues Identified in Project Analysis
+# Code Quality Issues Identified in IES Project Analysis
 
-## Introduction
-
-During static code analysis of our project with SonarQube, several code quality issues were identified. These issues range from potentially unsafe operations to maintainability concerns. This document outlines the key problems found and provides recommendations for addressing them.
-
-## Critical Issues Found
+## Issues Found
 
 ### 1. Unsafe Optional Handling
 
@@ -16,7 +12,7 @@ During static code analysis of our project with SonarQube, several code quality 
 
 **Issue**: `Define a constant instead of duplicating this literal "from(bucket: "" 5 times.`
 
-**Description**: The same string literal appears multiple times in the codebase, making maintenance difficult and error-prone.
+**Description**: The same string literal appears multiple times in the codebase, making maintenance difficult.
 
 ### 3. Excessive Method Complexity
 
@@ -24,7 +20,7 @@ During static code analysis of our project with SonarQube, several code quality 
 
 **Description**: A method in our codebase has become too complex, with too many decision points, nested conditions, and logical paths, making it difficult to understand and maintain.
 
-### 4. Parameter Bloat in Constructor
+### 4. Too much Parameters in Constructor
 
 **Issue**: `Constructor has 11 parameters, which is greater than 7 authorized.`
 
@@ -34,8 +30,8 @@ During static code analysis of our project with SonarQube, several code quality 
 
 **Issue**: `Replace this use of System.out by a logger.`
 
-**Description**: The code uses System.out.println() for logging instead of a proper logging framework.
+**Description**: The code sometimes uses System.out.println() for logging instead of a proper logging framework.
 
 ## Conclusion
 
-Addressing these code quality issues will significantly improve our codebase's maintainability, reliability, and readability. Most of these issues are straightforward to fix but will have a substantial positive impact on the project's overall quality. The team should prioritize these fixes in the next refactoring phase.
+Addressing these code quality issues will significantly improve our codebase's maintainability, reliability, and readability. Most of these issues are straightforward to fix but will have a substantial positive impact on the project's overall quality.
